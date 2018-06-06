@@ -1,0 +1,13 @@
+{
+"companyName": "DefaultCompany",
+"productName": "apprentice-web-game-unity",
+"dataUrl": "webgl-test.data.unityweb",
+"asmCodeUrl": "webgl-test.asm.code.unityweb",
+"asmMemoryUrl": "webgl-test.asm.memory.unityweb",
+"asmFrameworkUrl": "webgl-test.asm.framework.unityweb",
+"TOTAL_MEMORY": 268435456,
+"graphicsAPI": ["WebGL 2.0", "WebGL 1.0"],
+"webglContextAttributes": {"preserveDrawingBuffer": false},
+"splashScreenStyle": "Dark",
+"backgroundColor": "#231F20"
+}
