@@ -11,9 +11,14 @@ var psiTurk = new PsiTurk(uniqueId, adServerLoc, mode);
 
 // All pages to be loaded
 var pages = [
-	"form.html",
+	"game_form.html",
 	"success.html"
 ];
+
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+var port = 5005;
 
 psiTurk.preloadPages(pages);
 
@@ -37,27 +42,19 @@ checkcodefail = function () {
 	d3.select('.badcode').style("display","inline-block");
 }
 
-checkcode = function() {
-	console.log("checking code");
-
-//	var parts = window.location.search.substr(1).split("&");
-//	var $_GET = {};
-//	for (var i = 0; i < parts.length; i++) {
-//	    var temp = parts[i].split("=");
-//	    $_GET[decodeURIComponent(temp[0])] = decodeURIComponent(temp[1]);
-//	}
-
+training_1 = function() {
+	console.log("clicked training button");
 
 	$.ajax({
 		dataType: "json",
 		type: "POST",
-		data: {uniqueid: uniqueId, workerid: $_GET['workerId'], code: $("#completecode").val()},
+		data: {uniqueid: uniqueId, workerid: $_GET['workerId']},
 		url: "/check_flask",
 		success: function(data) {
-			checkcodesuccess(data.bonus);
+			window.alert("data sent to flask");
 		},
 		error: function () {
-			checkcodefail();
+			window.alert("data not sent to flask");
 		}
 	});
 }
@@ -73,9 +70,7 @@ var currentview;
  ******************/
 $(window).load( function(){
 	// Load the stage.html snippet into the body of the page
-	psiTurk.showPage('form.html');
-	$('#myalert').on('click', function () {
-		d3.select('.badcode').style("display","none");
-	});
+	psiTurk.showPage('game_form.html');
+	$('#training_button').on('click', training_1());
 
 });
