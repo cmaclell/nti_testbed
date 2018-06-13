@@ -7,13 +7,12 @@ How to use
 ----------
 
 **Setup**
-optional: setup and activate virtualenv
-`pip install python-socketio`
-`pip install shortuuid`
-`git clone https://github.com/bsheline/psiTurk.git` (or whereever)
-`pip install ./psiTurk`
-
-Acquire AWS credentials, and account on psiturk.org.
+optional: setup and activate virtualenv  
+1. `pip install python-socketio`  
+1. `pip install shortuuid`  
+1. `git clone https://github.com/bsheline/psiTurk.git` (or whereever)  
+1. `pip install ./psiTurk`  
+1. Acquire AWS credentials, and account on psiturk.org.  
 
 
 **Get the repo**  
