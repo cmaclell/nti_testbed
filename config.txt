@@ -1,19 +1,19 @@
 [HIT Configuration]
-title = Compensation HIT for e-mailed workers - All Others will Be Rejected
-description = Compensation for task that had technical problem.  Sorry!
-amt_keywords = Psychology
+title = Learning study
+description = Learning study
+amt_keywords = Learning, education, game
 lifetime = 24
 us_only = true
 approve_requirement = 95
-contact_email_on_error = youremail@gmail.com
-ad_group = Whoops y'all
+contact_email_on_error = aybabtu107@gmail.com
+ad_group = apprentice
 psiturk_keywords = whoops
-organization_name = CHANGETHISPLEASE
+organization_name = st
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Database Parameters]
 database_url = sqlite:///participants.db
-table_name = turkdemo
+table_name = apprentice
 
 [Server Parameters]
 host = localhost

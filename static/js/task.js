@@ -1,67 +1,83 @@
 /*
+ * client javascript
  * Requires:
  *     psiturk.js
  *     utils.js
+ *     socket.io.js
  */
 
 // Initalize psiturk object
 var psiTurk = new PsiTurk(uniqueId, adServerLoc, mode);
 
-// they are not used in the stroop code but may be useful to you
+/*
+*  Placeholder for HTTP/socket requests. For the actual experiment, load the object in stage.html, and
+*  connect its endpoints to the flask server, which is located at {{ server_location }}:{{ flask_port }}
+*/
+var socket = io('http://localhost:22362'); 
+
 
 // All pages to be loaded
 var pages = [
-	"game_form.html",
-	"success.html"
+    "stage.html",
+    "success.html"
 ];
 
-var app = require('express')();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var port = 5005;
 
 psiTurk.preloadPages(pages);
 
 
 /********************
 * HTML manipulation
-*
-* All HTML files in the templates directory are requested 
-* from the server when the PsiTurk object is created above. We
-* need code to get those pages from the PsiTurk object and 
-* insert them into the document.
-*
 ********************/
 
 checkcodesuccess = function (bonus) {
-	psiTurk.showPage('success.html');
-	d3.select('#bonusamount').select(".bignumber").text('$'+bonus);
+    psiTurk.showPage('success.html');
+    d3.select('#bonusamount').select(".bignumber").text('$'+bonus);
 }
 
 checkcodefail = function () {
-	d3.select('.badcode').style("display","inline-block");
+    d3.select('.badcode').style("display","inline-block");
 }
 
-training_1 = function() {
-	console.log("clicked training button");
 
-	$.ajax({
-		dataType: "json",
-		type: "POST",
-		data: {uniqueid: uniqueId, workerid: $_GET['workerId']},
-		url: "/check_flask",
-		success: function(data) {
-			window.alert("data sent to flask");
-		},
-		error: function () {
-			window.alert("data not sent to flask");
-		}
-	});
+log = function(data) {
+    console.log(data)
 }
 
+demonstrate = function() {
+    
+
+    socket.emit('button', { 'button_id': 'demonstrate' })
+    console.log('button click sent to socket')
+
+    // $_GET['workerId']
+    $.ajax({
+        dataType: "json",
+        type: "POST",
+        data: {uniqueid: uniqueId, workerid: "worker" },
+        url: "/test",
+        success: function(data) {
+    
+            //log(data);
+        },
+        error: function () {
+            log("data not sent to flask");
+        }
+    });
+}
+
+reward = function() {
+ 
+    socket.emit('button', { 'button_id': 'reward' })
+    console.log('button click sent to socket')
+}
+
+
+//call this when finished
 completehit = function() {
-	psiTurk.completeHIT();
+    psiTurk.completeHIT();
 }
+
 // Task object to keep track of the current phase
 var currentview;
 
@@ -69,8 +85,29 @@ var currentview;
  * Run Task
  ******************/
 $(window).load( function(){
-	// Load the stage.html snippet into the body of the page
-	psiTurk.showPage('game_form.html');
-	$('#training_button').on('click', training_1());
 
+    
+    
+    socket.on('push', function (data) {
+        console.log(data);
+    }); 
+
+    // stage.html should contain the game object
+    psiTurk.showPage('stage.html');
+    console.log("task.js loaded");
+   
+       
+    
+    // just some placeholder development stuff
+    $('#demonstrate_button').click(demonstrate);
+
+    $('#reward_button').click(function() {
+        reward();
+    });
+
+    $('#finish_button').click(function() {
+        completehit();
+    });
+    
+    
 });

@@ -8,8 +8,7 @@ How to use
 
 **Setup**
 optional: setup and activate virtualenv  
-1. `pip install python-socketio`  
-1. `pip install shortuuid`  
+1. `pip install python-socketio`   
 1. `git clone https://github.com/bsheline/psiTurk.git` (or whereever)  
 1. `pip install ./psiTurk`  
 1. Acquire AWS credentials, and account on psiturk.org.  
@@ -27,11 +26,10 @@ optional: setup and activate virtualenv
 
 **Update the database** 
 
-1. `psiturk` - launch psiturk  
+1. `sudo psiturk` - launch psiturk  
 1. `[psiTurk server:off mode:sdbx #HITs:0]$ server on` - start server  
 1. visit http://SERVER/dashboard (e.g., http://localhost:22362/dashboard)
 1. login with the credentials you provided in the config.txt
-1. enter worker ids and bonus amounts
 
 **Test the end-user code**  
 
