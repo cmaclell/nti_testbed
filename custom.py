@@ -1,6 +1,6 @@
 # this file imports custom routes into the experiment server
 
-from flask import Blueprint, render_template, request, jsonify, Response, abort, current_app, flash, Flask
+from flask import Blueprint, render_template, request, jsonify, Response, abort, current_app, flash, Flask, send_from_directory
 from jinja2 import TemplateNotFound
 from functools import wraps
 from sqlalchemy import or_, and_
@@ -22,7 +22,7 @@ from coordinator import Coordinator
 import uuid
 import json
 
-from custom_models import User
+from custom_models import User, ActiveTask
 #from database import db_session, init_db
 
 
@@ -39,26 +39,39 @@ custom_code = Blueprint('custom_code', __name__, template_folder='templates', st
 sio = socketio.Server(logger=True)
 
 
+# @custom_code.route('/Build/<path:path>')
+# def send_Build(path):
+#     print("serving " + str(path))
+#     return send_from_directory('Build', path)
+
+
+
+@custom_code.route('/TemplateData/<path:path>')
+def send_Build(path):
+    return send_from_directory('static/TemplateData', path)
+
+@custom_code.route('/Build/<path:path>')
+def send_template(path):   
+    return send_from_directory('static/Build', path)
+
 @custom_code.record
 def record(state):
     try:
-        u = User('admin', 'admin@localhost')
+        u = User('127.0.0.1')
         db_session.add(u)
         db_session.commit()
     except Exception as e:
         print(e)
 
     print("custom.py blueprint registered")
-    
 
-#currently unnecessary as client gets socket.io.js from the web
-@custom_code.route('/socket.io/socket.io.js')
+
+#client gets socket.io.js from the web, webgl client gets it here
+@custom_code.route('/js/socket.io.js', methods=['GET', 'POST'])
 def get_siojs():
-    print('trying to serve socketio file')
-    with open('static/socket.io/socket.io.js') as fin:
+    with open("static/js/socket.io.js") as fin:
         data = fin.read()
         return data, 200, {'Content-Type': 'application/javascript; charset=utf-8'}
-    # return app.send_static_file('socket.io/socket.io.js')
 
 @custom_code.route("/test", methods=['GET', 'POST'])
 def test5():
@@ -69,6 +82,10 @@ def test5():
         status=200,
         mimetype='application/json'
     )
+
+
+    
+    
     
     return response
 
@@ -85,17 +102,44 @@ def save(message, data):
     
     return response
 
-@sio.on('new_user')
+@sio.on('htmlMessage')
+def html_message(message, data):
+    print('html message: ' + str(data))
+
+@sio.on('new_session')
 def new_user(message, data):
+    ip = data['ip'] 
     print('new user request receieved')
-    c.register_user(id)
+    # query checks if user is already in user table
+    if True: #not User.query.filter(User.ip == ip).count() > 0:
+
+        u = User(ip)
+        #query gets a waiting user
+        waiting = User.query.filter(User.assigned_task==False).order_by(User.last_active.desc()).first()
+        if waiting is not None:
+            #if random.random() < .5:\
+            print("found match, creating game")
+            t = ActiveTask(teacher = waiting.user_id, student = u.user_id)
+            db_session.add(t)
+            waiting.assigned_task = True
+            u.assigned_task = True
+        else:
+            print("no waiting user, waiting") 
+
+        db_session.add(u)
+        db_session.commit()
+    else:
+        print("user already has requested new session, probably a bug")
+
     return "new user response"
 
     
 @sio.on('button')
 def button(sid, data):
     print("button click: ", str(data), 'now query: ')
-
+    print("lock buttons")
+    sio.emit("lockButtons")
+    sio.emit("lock")
     try:
         q = User.query.all()
         print(q)
@@ -104,6 +148,10 @@ def button(sid, data):
     
     sio.emit('push', {'func' : 'action'})
 
+@sio.on('action')
+def test_connect(sid, environ):
+    print("action received")
+    
 
 @sio.on('connect')
 def test_connect(sid, environ):
@@ -124,8 +172,11 @@ def shutdown_session(exception=None):
 
     
 if __name__=="__main__":
-    app = Flask(__name__)
-    app.register_blueprint(custom_code)
-    app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
-    app.config['SECRET_KEY'] = 'secret!'
-    app.run(host='localhost', port=22361)
+    init_db()
+    new_user(None, {'ip':'127.0.0.1'})
+    new_user(None, {'ip':'127.0.0.2'})
+    # app = Flask(__name__)
+    # app.register_blueprint(custom_code)
+    # app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
+    # app.config['SECRET_KEY'] = 'secret!'
+    # app.run(host='localhost', port=22361)

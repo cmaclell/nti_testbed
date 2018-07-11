@@ -13,7 +13,7 @@ var psiTurk = new PsiTurk(uniqueId, adServerLoc, mode);
 *  Placeholder for HTTP/socket requests. For the actual experiment, load the object in stage.html, and
 *  connect its endpoints to the flask server, which is located at {{ server_location }}:{{ flask_port }}
 */
-var socket = io('http://localhost:22362'); 
+//var socket = io('http://localhost:5000'); 
 
 
 // All pages to be loaded
@@ -86,15 +86,14 @@ var currentview;
  ******************/
 $(window).load( function(){
 
-    
-    
     socket.on('push', function (data) {
         console.log(data);
     }); 
 
     // stage.html should contain the game object
+    console.log("loading task.js..");
     psiTurk.showPage('stage.html');
-    console.log("task.js loaded");
+    
    
        
     

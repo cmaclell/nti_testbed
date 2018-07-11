@@ -17,7 +17,7 @@ table_name = apprentice
 
 [Server Parameters]
 host = localhost
-port = 22362
+port = 5000
 cutoff_time = 30
 logfile = server.log
 loglevel = 1

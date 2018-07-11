@@ -1,15 +1,11 @@
-Apprentice 
-===========
-
-...
 
 How to use
 ----------
 
 **Setup**
-optional: setup and activate virtualenv  
+optional: create and activate virtualenv  
 1. `pip install python-socketio`   
-1. `git clone https://github.com/bsheline/psiTurk.git` (or whereever)  
+1. `git clone https://github.com/bsheline/psiTurk.git`  
 1. `pip install ./psiTurk`  
 1. Acquire AWS credentials, and account on psiturk.org.  
 
