@@ -8,7 +8,7 @@
 
 // Initalize psiturk object
 var psiTurk = new PsiTurk(uniqueId, adServerLoc, mode);
-
+console.log("loading task.js for worker: " + uniqueId);
 /*
 *  Placeholder for HTTP/socket requests. For the actual experiment, load the object in stage.html, and
 *  connect its endpoints to the flask server, which is located at {{ server_location }}:{{ flask_port }}
@@ -90,13 +90,15 @@ $(window).load( function(){
         console.log(data);
     }); 
 
+    socket.on('init', function (data) {
+        console.log(data);
+    }); 
+
     // stage.html should contain the game object
-    console.log("loading task.js..");
     psiTurk.showPage('stage.html');
+    socket.emit('user_id', 'task.js user id')
     
-   
-       
-    
+      
     // just some placeholder development stuff
     $('#demonstrate_button').click(demonstrate);
 

@@ -18,13 +18,10 @@ from json import dumps, loads
 
 import datetime
 import socketio
-from coordinator import Coordinator
 import uuid
 import json
 
-from custom_models import User, ActiveTask
-#from database import db_session, init_db
-
+from custom_models import User, Task, State
 
 
 # load the configuration options
@@ -35,15 +32,8 @@ myauth = PsiTurkAuthorization(config)  # if you want to add a password protect r
 
 custom_code = Blueprint('custom_code', __name__, template_folder='templates', static_folder='static')
 
-# modified psiturk will look for sio to inject as WSGI middleware
+# modified psiturk will look for attribute "sio" to inject as WSGI middleware
 sio = socketio.Server(logger=True)
-
-
-# @custom_code.route('/Build/<path:path>')
-# def send_Build(path):
-#     print("serving " + str(path))
-#     return send_from_directory('Build', path)
-
 
 
 @custom_code.route('/TemplateData/<path:path>')
@@ -56,12 +46,12 @@ def send_template(path):
 
 @custom_code.record
 def record(state):
-    try:
-        u = User('127.0.0.1')
-        db_session.add(u)
-        db_session.commit()
-    except Exception as e:
-        print(e)
+    # try:
+    #     u = User('127.0.0.1')
+    #     db_session.add(u)
+    #     db_session.commit()
+    # except Exception as e:
+    #     print(e)
 
     print("custom.py blueprint registered")
 
@@ -73,63 +63,44 @@ def get_siojs():
         data = fin.read()
         return data, 200, {'Content-Type': 'application/javascript; charset=utf-8'}
 
-@custom_code.route("/test", methods=['GET', 'POST'])
-def test5():
-    data =  json.dumps({'success':True, 'apple':'orange'})
-    print(data)
-    response = Response(
-        response=data,
-        status=200,
-        mimetype='application/json'
-    )
 
-
-    
-    
-    
-    return response
-
-@sio.on('test')
-def save(message, data):
-    print(str(args))
-    print("socket test received by flask")
-    data =  json.dumps({'success':True, 'func' : 'save'})
-    response = Response(
-        response=data,
-        status=200,
-        mimetype='application/json'
-    )
-    
-    return response
-
-@sio.on('htmlMessage')
-def html_message(message, data):
-    print('html message: ' + str(data))
-
-@sio.on('new_session')
+@sio.on('new_user')
 def new_user(message, data):
-    ip = data['ip'] 
+
+    #sio.on(data).emit("initialize", {"actor":"trainer","id":data})
+    #return
+
+    uid = data#.get('uid', 'uid-not-found')
+    user = User.query.filter(User.user_id==uid).first()
+    exists = False
+
     print('new user request receieved')
-    # query checks if user is already in user table
-    if True: #not User.query.filter(User.ip == ip).count() > 0:
+    
+    if user is None:
+        user = User(uid, ip='127.0.0.1')
+        db_session.add(user)
 
-        u = User(ip)
-        #query gets a waiting user
-        waiting = User.query.filter(User.assigned_task==False).order_by(User.last_active.desc()).first()
-        if waiting is not None:
-            #if random.random() < .5:\
-            print("found match, creating game")
-            t = ActiveTask(teacher = waiting.user_id, student = u.user_id)
-            db_session.add(t)
-            waiting.assigned_task = True
-            u.assigned_task = True
-        else:
-            print("no waiting user, waiting") 
+    #query gets a waiting user
+    waiting = User.query.filter(User.task==None).order_by(User.last_active.desc()).first()
 
-        db_session.add(u)
-        db_session.commit()
+    if waiting is not None:
+        #if random.random() < .5:\
+        print("found match, creating game")
+        t = ActiveTask()
+        waiting.task = t
+        user.task = t
+        waiting.role = 'teacher'
+        user.role = 'student'
+        
+        db_session.add(t)
+
+        sio.on(waiting.user_id).emit("initialize", {"actor":"trainer","id":waiting.user_id})
+        sio.on(user.user_id).emit("initialize", {"actor":"student","id":user.user_id})
+        
     else:
-        print("user already has requested new session, probably a bug")
+        print("no waiting user, waiting") 
+
+    db_session.commit()
 
     return "new user response"
 
@@ -148,6 +119,11 @@ def button(sid, data):
     
     sio.emit('push', {'func' : 'action'})
 
+@sio.on('user_id')
+def user_id(sid, data):
+    print("user id connected: " + str(data))
+    sio.emit("init", "session-225")
+
 @sio.on('action')
 def test_connect(sid, environ):
     print("action received")
@@ -155,8 +131,7 @@ def test_connect(sid, environ):
 
 @sio.on('connect')
 def test_connect(sid, environ):
-    print("flask-socketio connected")
-    sio.emit('test_response', {'data': 'Connected'})
+    print("flask-socketio connection established")
 
 
 @custom_code.route("/")
@@ -170,11 +145,10 @@ def shutdown_session(exception=None):
     db_session.remove()
 
 
-    
 if __name__=="__main__":
     init_db()
-    new_user(None, {'ip':'127.0.0.1'})
-    new_user(None, {'ip':'127.0.0.2'})
+    new_user(None, 'tempid12')
+    new_user(None, 'tempid13')
     # app = Flask(__name__)
     # app.register_blueprint(custom_code)
     # app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
