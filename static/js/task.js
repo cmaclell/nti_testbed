@@ -8,46 +8,33 @@
 
 // Initalize psiturk object
 var psiTurk = new PsiTurk(uniqueId, adServerLoc, mode);
+
+
+test_socket = function () {
 console.log("loading task.js for worker: " + uniqueId);
-/*
-*  Placeholder for HTTP/socket requests. For the actual experiment, load the object in stage.html, and
-*  connect its endpoints to the flask server, which is located at {{ server_location }}:{{ flask_port }}
-*/
-//var socket = io('http://localhost:5000'); 
 
 
-// All pages to be loaded
-var pages = [
-    "stage.html",
-    "success.html"
-];
+var socket_test = io.connect('http://127.0.0.1:5000');
 
+ socket_test.on('connect', function (data) {
+    console.log('joining room');
+    socket_test.emit('join', {'id': uniqueId})
+  });
 
-psiTurk.preloadPages(pages);
+ socket_test.on('nullop', function (data) {
+    console.log('should not receive nullop');
+  });
 
+ socket_test.on('copy', function (data) {
+    console.log('join request received');
 
-/********************
-* HTML manipulation
-********************/
+  });
 
-checkcodesuccess = function (bonus) {
-    psiTurk.showPage('success.html');
-    d3.select('#bonusamount').select(".bignumber").text('$'+bonus);
-}
-
-checkcodefail = function () {
-    d3.select('.badcode').style("display","inline-block");
-}
-
-
-log = function(data) {
-    console.log(data)
-}
-
+console.log('attempted to join')
 demonstrate = function() {
     
 
-    socket.emit('button', { 'button_id': 'demonstrate' })
+    socket_test.emit('button', { 'button_id': 'demonstrate' })
     console.log('button click sent to socket')
 
     // $_GET['workerId']
@@ -68,9 +55,32 @@ demonstrate = function() {
 
 reward = function() {
  
-    socket.emit('button', { 'button_id': 'reward' })
+    socket_test.emit('join', {'id': uniqueId})
+    socket_test.emit('button', { 'button_id': 'reward' })
     console.log('button click sent to socket')
 }
+}
+
+ 
+
+
+
+
+/*
+*  Placeholder for HTTP/socket requests. For the actual experiment, load the object in stage.html, and
+*  connect its endpoints to the flask server, which is located at {{ server_location }}:{{ flask_port }}
+*/
+//var socket = io('http://localhost:5000'); 
+
+
+// All pages to be loaded
+var pages = [
+    "stage.html",
+    "success.html"
+];
+
+
+psiTurk.preloadPages(pages);
 
 
 //call this when finished
@@ -85,30 +95,18 @@ var currentview;
  * Run Task
  ******************/
 $(window).load( function(){
-
-    socket.on('push', function (data) {
-        console.log(data);
-    }); 
-
-    socket.on('init', function (data) {
-        console.log(data);
-    }); 
-
     // stage.html should contain the game object
     psiTurk.showPage('stage.html');
-    socket.emit('user_id', 'task.js user id')
-    
-      
     // just some placeholder development stuff
-    $('#demonstrate_button').click(demonstrate);
+//     $('#demonstrate_button').click(demonstrate);
 
-    $('#reward_button').click(function() {
-        reward();
-    });
+//     $('#reward_button').click(function() {
+//         reward();
+//     });
 
-    $('#finish_button').click(function() {
-        completehit();
-    });
+//     $('#finish_button').click(function() {
+//         completehit();
+//     });
     
     
 });

@@ -11,13 +11,23 @@ class Task(Base):
     last_active = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
     pattern = Column(String(80))
     state = relationship("State", order_by="State.timestamp", collection_class=ordering_list('timestamp'))
- 
+    action = relationship("Action", order_by="Action.timestamp", collection_class=ordering_list('timestamp'))
     def __init__(self, pattern):
         self.pattern = pattern
 
 class State(Base):
     __tablename__ = 'state'
     state_id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, nullable=False, server_default=func.now())
+    task_id = Column(Integer, ForeignKey('task.task_id'), nullable=False)
+    payload = Column(String(80)) # needs to be json blob
+
+    def __init__(self, payload):
+        self.payload = payload
+
+class Action(Base):
+    __tablename__ = 'action'
+    action_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, server_default=func.now())
     task_id = Column(Integer, ForeignKey('task.task_id'), nullable=False)
     payload = Column(String(80)) # needs to be json blob
