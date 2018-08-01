@@ -21,7 +21,7 @@ import sys
 import traceback
 
 #our stuff
-from custom_models import User, Task, Event
+#from custom_models import User, Task, Event
 from util import exception
 import pattern
 

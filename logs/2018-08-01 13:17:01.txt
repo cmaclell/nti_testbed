@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/home/osboxes/apprentice/PsiturkApprentice/util.py", line 24, in wrapper
+    return function(*args, **kwargs)
+  File "/home/osboxes/apprentice/PsiturkApprentice/custom.py", line 182, in onTrainingButtonPress
+    game.event(uid, event_type='button', event_data=data['identifier'])
+  File "/home/osboxes/apprentice/PsiturkApprentice/pattern.py", line 64, in event
+    self.event_dict[event_type](actor, event_data)
+  File "/home/osboxes/apprentice/PsiturkApprentice/pattern.py", line 130, in button
+    sio.emit("instructions", "student", room=actor)
+NameError: global name 'sio' is not defined
+Traceback (most recent call last):
+  File "/home/osboxes/apprentice/PsiturkApprentice/util.py", line 24, in wrapper
+    return function(*args, **kwargs)
+  File "/home/osboxes/apprentice/PsiturkApprentice/custom.py", line 182, in onTrainingButtonPress
+    game.event(uid, event_type='button', event_data=data['identifier'])
+  File "/home/osboxes/apprentice/PsiturkApprentice/pattern.py", line 64, in event
+    self.event_dict[event_type](actor, event_data)
+  File "/home/osboxes/apprentice/PsiturkApprentice/pattern.py", line 130, in button
+    sio.emit("instructions", "student", room=actor)
+NameError: global name 'sio' is not defined

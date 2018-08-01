@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/home/osboxes/apprentice/PsiturkApprentice/util.py", line 25, in wrapper
+    return function(*args, **kwargs)
+  File "/home/osboxes/apprentice/PsiturkApprentice/custom.py", line 102, in on_join
+    testing_user(room)
+  File "/home/osboxes/apprentice/PsiturkApprentice/custom.py", line 187, in testing_user
+    new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
+  File "/home/osboxes/apprentice/PsiturkApprentice/pattern.py", line 114, in __init__
+    super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user)
+TypeError: super() argument 1 must be type, not classobj
+Traceback (most recent call last):
+  File "/home/osboxes/apprentice/PsiturkApprentice/util.py", line 25, in wrapper
+    return function(*args, **kwargs)
+  File "/home/osboxes/apprentice/PsiturkApprentice/custom.py", line 102, in on_join
+    testing_user(room)
+  File "/home/osboxes/apprentice/PsiturkApprentice/custom.py", line 187, in testing_user
+    new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
+  File "/home/osboxes/apprentice/PsiturkApprentice/pattern.py", line 114, in __init__
+    super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user)
+TypeError: super() argument 1 must be type, not classobj
