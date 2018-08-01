@@ -1,8 +1,7 @@
 
 **Requirements**
-optional: create and activate virtualenv  
-1. `pip install python-socketio`   
-1. `pip install -U git+https://github.com/bsheline/psiTurk.git@master`
+optional: create and activate virtualenv    
+`pip install -U git+https://github.com/bsheline/psiTurk.git@socketio`
 
 **Installation**  
 
@@ -11,7 +10,6 @@ optional: create and activate virtualenv
 **Config**  
 
 1. edit `config.txt` (AWS/psiturk credentials, setting `host` to 0.0.0.0 if you plan to run on the public internet)
-
 
 **Test**  
 
