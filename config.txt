@@ -27,12 +27,12 @@ login_pw = CHANGETHISTOO
 threads = auto
 
 [Task Parameters]
-experiment_code_version = 1.0
-num_conds = 1
-num_counters = 1
+experiment_code_version = 1.1
+single_player = true
 
 [Shell Parameters]
 launch_in_sandbox_mode = true
 
 use_psiturk_ad_server = true
 ad_location = false
+

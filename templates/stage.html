@@ -301,6 +301,11 @@
             document.getElementById('serverMessages').innerHTML += "<p>" + message + "</p>";
         
         });
+
+        socket.on('instructions', function(message) {
+            console.log("instructions: " + message);
+        });
+        
         socket.on('clearTrainingMessages', function(message) {
             document.getElementById('serverMessages').innerHTML = "<p> The Log: </p>";
         

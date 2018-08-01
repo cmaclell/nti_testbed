@@ -21,100 +21,117 @@ import sys
 import traceback
 
 #our stuff
-from custom_models import User, Task, State
+from custom_models import User, Task, Event
 from util import exception
 import pattern
+
+#psiturk looks for this blueprint to register endpoints
+custom_code = Blueprint('custom_code', __name__, template_folder='templates', static_folder='static')
+
+# modified psiturk looks for this attribute to inject as WSGI middleware into the flask app
+sio = socketio.Server(logger=True)
 
 # load the configuration options
 config = PsiturkConfig()
 config.load_config()
 myauth = PsiTurkAuthorization(config)  # if you want to add a password protect route use this
 
-custom_code = Blueprint('custom_code', __name__, template_folder='templates', static_folder='static')
 
-# modified psiturk will look for attribute "sio" to inject as WSGI middleware
-sio = socketio.Server(logger=True)
+connections = {} # map: socket-id -> user-id
+games = {} # map: user-id -> task object (both user-ids)
+queue = [] # list of unmatched user-ids
 
-connections = {}
-games = {}
-queue = []
 
 ### SETUP/TEARDOWN ###
 @custom_code.record
+@exception
 def record(state):
-    print("loaded blueprint") # fires on blueprint registration
+    pass # fires on blueprint registration
 
 @custom_code.teardown_request
+@exception
 def shutdown_session(exception=None):
     db_session.remove()
 
 ### HTTP API ###
 @custom_code.route('/TemplateData/<path:path>')
+@exception
 def send_Build(path):
     print('serving template data')
     return send_from_directory('static/TemplateData', path)
 
 @custom_code.route('/Build/<path:path>')
+@exception
 def send_template(path):   
     return send_from_directory('templates/Build', path)
 
-
-# @custom_code.route('/js/socket.io.js', methods=['GET', 'POST'])
-# def get_siojs():
-#     with open("static/js/socket.io.js") as fin:
-#         data = fin.read()
-#         return data, 200, {'Content-Type': 'application/javascript; charset=utf-8'}
-
 @custom_code.route('/js/<path:path>', methods=['GET', 'POST'])
-def get_siojs():
-    with open("static/js/<path:path>") as fin:
+@exception
+def get_siojs(path):
+    with open("static/js/" + path) as fin:
         data = fin.read()
         return data, 200, {'Content-Type': 'application/javascript; charset=utf-8'}
 
 ### STANDARD WEBSOCKET API ###
 @sio.on('connect')
+@exception
 def connected(sid, environ):
     pass # print("new socket connection")
     
 @sio.on('disconnect')
+@exception
 def disconnect(sid):
     pass # print("socket connection closed")
 
 @sio.on('join')
 @exception
 def on_join(sid, data):
-    print("join message received: ", data)
+    # assign socket id to psiturk 
+
     room = data['id']
     sio.enter_room(sid, room)
-    sio.emit("sendTrainingMessage", "communication with game room established", room=room)
+
+    # user is reconnecting
+    if room in list(connections.values()):
+        if room in games:
+            games[room].reconnect(room)
+
+    # user is new
+    else:
+        room = data['id']
+        if config.getboolean("Task Parameters", "single_player"):
+            testing_user(room)
+        else:
+            register_user(room)
+
+    # emit instructions corresponding to users role"
+    if "first" in data:
+        sio.emit("instructions", games[room].role_string(room))
+        
     connections[sid] = room
-    register_user(room)
     
 
 ### UNITY WEBSOCKET API ENDPOINTS ###
 @sio.on('action')
 @exception
 def action(sid, data):
-    try:
-        """action(action_info-> as json)
-        The unity game sends this function each time it performs an action, which could be setting a waypoint, 
-        or clicking any of the two to four action buttons (go, clear waypoints, pickup object, put down object) 
-        Feed this JSON back into action() (sent from flask to unity) to make the unity game perform this action. 
-        You can also feed just the prior state into load() to reset the scene back to how it was before the action was taken.
-        """
-        uid = connections.get(sid, None)
-        game = games.get(uid, None)
+    
+    """action(action_info-> as json)
+    The unity game sends this function each time it performs an action, which could be setting a waypoint, 
+    or clicking any of the two to four action buttons (go, clear waypoints, pickup object, put down object) 
+    Feed this JSON back into action() (sent from flask to unity) to make the unity game perform this action. 
+    You can also feed just the prior state into load() to reset the scene back to how it was before the action was taken.
+    """
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
 
-        if game is not None:
-            #print("size of action object before: " + str(sys.getsizeof(data)))
-            #data["prior state"] = None
-            #print("size of action object after: " + str(sys.getsizeof(data)))
-            game.event(uid, event_type='action', event_data=data)
+    if game is not None:
+        #print("size of action object before: " + str(sys.getsizeof(data)))
+        #data["prior state"] = None
+        #print("size of action object after: " + str(sys.getsizeof(data)))
+        game.event(uid, event_type='action', event_data=data)
         
-        print("action received")
-    except Exception, err:
-        traceback.print_exc()
-
+   
 @sio.on('initialState')
 @exception
 def initialState(sid, data):
@@ -128,10 +145,13 @@ def initialState(sid, data):
     game = games.get(uid, None)
 
     if game is not None:
+        if game.student == uid:
         #game.event(uid, event_type='set_initial_state', event_data=data)
-        game.initial_state = data
+            #game.initial_state = data
+            #sio.emit('load', game.initial_state, room=game.teacher)
+            game.event(uid, event_type='initial_state', event_data=data)
 
-    print("state received")
+
    
 
 ### HTML API ENDPOINTS ###
@@ -144,7 +164,11 @@ def getChatMessage(sid, data):
     send button next to the chat box. The text is in message, and the id is the id of the user gotten 
     from the psiturk id (the same id used in join as shown below)
     """
-    print("message from user: ", data['message'])
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
+
+    if game is not None:
+        game.event(uid, event_type='chat', event_data=data['message'])
 
 @sio.on('onTrainingButtonPress')
 @exception
@@ -163,26 +187,32 @@ def onTrainingButtonPress(sid, data):
 
     print("training button pressed: ", data['identifier'])
 
+def testing_user(uid):
+    if uid not in games:
+        new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
+        sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
+        games[uid] = new_game
+
 ### MODALITY LOGIC ### 
 def register_user(uid):
     if uid not in queue:
         queue.append(uid)
 
     if len(queue) > 1 and uid not in games:
-        #a, b = queue.pop(0), queue.pop(0)
+       
         a = queue.pop(0)
         b = queue.pop(0)
 
-        html_unity = None
-        new_game = pattern.HtmlUnityModality(pattern=pattern.Observe(), sio=sio, teacher=a, student=b)
+        new_game = pattern.HtmlUnityObserve(sio=sio, teacher=a, student=b)
 
         games[a] = new_game
         games[b] = new_game
         
-        print("new game created between: ", a, ' and ', b)
-        sio.emit("sendTrainingMessage", "you've been matched as teacher", room=a)
-        sio.emit("sendTrainingMessage", "you've been matched as student", room=b)
-
+        print("new game created between: " + str(a) + ' and ' + str(b))
+        sio.emit("sendTrainingMessage", "SYSTEM: You've been matched as teacher.", room=a)
+        sio.emit("sendTrainingMessage", "SYSTEM: You've been matched as student.", room=b)
+    else:
+        sio.emit("sendTrainingMessage", "SYSTEM: Waiting for a partner.", room=uid)
 
     # new_user = User.query.filter(User.user_id==uid).first()
     #waiting = User.query.filter(User.task==None).order_by(User.last_active.desc()).first()
@@ -194,5 +224,3 @@ if __name__=="__main__":
     app.register_blueprint(custom_code)
     app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
     app.run(host='localhost', port=5000)
-
-    register_user("123")
