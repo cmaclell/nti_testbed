@@ -1,33 +1,20 @@
 
-How to use
-----------
-
-**Setup**
+**Requirements**
 optional: create and activate virtualenv  
 1. `pip install python-socketio`   
-1. `git clone https://github.com/bsheline/psiTurk.git`  
-1. `pip install ./psiTurk`  
-1. Acquire AWS credentials, and account on psiturk.org.  
+1. `pip install -U git+https://github.com/bsheline/psiTurk.git@master`
 
-
-**Get the repo**  
+**Installation**  
 
 1. `git clone https://hq-git.soartech.com/git/PsiturkApprentice.git`  
 
-**Make it yours**  
+**Config**  
 
 1. `cd PsiturkApprentice` - change to the project folder  
 1. edit `config.txt` to your liking (particular setting `host` to 0.0.0.0 if you plan to run on the public internet
-1. edit the `templates/ad.html` file 
 
-**Update the database** 
 
-1. `sudo psiturk` - launch psiturk  
-1. `[psiTurk server:off mode:sdbx #HITs:0]$ server on` - start server  
-1. visit http://SERVER/dashboard (e.g., http://localhost:22362/dashboard)
-1. login with the credentials you provided in the config.txt
-
-**Test the end-user code**  
+**Test **  
 
 1. `psiturk` - launch psiturk if it is not already running
 1. `[psiTurk server:off mode:sdbx #HITs:0]$ server on` - start server if not already running
