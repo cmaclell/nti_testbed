@@ -10,11 +10,10 @@ optional: create and activate virtualenv
 
 **Config**  
 
-1. `cd PsiturkApprentice` - change to the project folder  
-1. edit `config.txt` to your liking (particular setting `host` to 0.0.0.0 if you plan to run on the public internet
+1. edit `config.txt` (AWS/psiturk credentials, setting `host` to 0.0.0.0 if you plan to run on the public internet)
 
 
-**Test **  
+**Test**  
 
 1. `psiturk` - launch psiturk if it is not already running
 1. `[psiTurk server:off mode:sdbx #HITs:0]$ server on` - start server if not already running
