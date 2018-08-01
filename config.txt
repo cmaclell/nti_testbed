@@ -27,7 +27,6 @@ login_pw = CHANGETHISTOO
 threads = auto
 
 [Task Parameters]
-experiment_code_version = 1.1
 single_player = true
 
 [Shell Parameters]
