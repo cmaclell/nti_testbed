@@ -7,10 +7,10 @@ import os
 def time_str():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-log_file = open(os.path.join("logs", time_str() + ".txt"), "w")
+#log_file = open(os.path.join("logs", time_str() + ".txt"), "w")
 
-def log(message):
-    log_file.write(time_str() + " : " + message)
+#def log(message):
+    #log_file.write(time_str() + " : " + message)
 
 #https://www.blog.pythonlibrary.org/2016/06/09/python-how-to-create-an-exception-logging-decorator/
 def exception(function):
@@ -24,7 +24,7 @@ def exception(function):
             return function(*args, **kwargs)
         except Exception, err:
             traceback.print_exc()
-            traceback.print_exc(file=log_file)
+            #traceback.print_exc(file=log_file)
     return wrapper
  
 # def create_logger():
