@@ -13,7 +13,6 @@ from psiturk.db import db_session, init_db
 from psiturk.models import Participant
 
 import datetime
-import flask_socketio
 import socketio
 import uuid
 import json
