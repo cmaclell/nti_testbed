@@ -18,6 +18,7 @@ import uuid
 import json
 import sys
 import traceback
+import random
 
 #our stuff
 #from custom_models import User, Task, Event
@@ -86,26 +87,26 @@ def disconnect(sid):
 @exception
 def on_join(sid, data):
     # assign socket id to psiturk 
-
+    print("join request from " + str(data))
     room = data['id']
     sio.enter_room(sid, room)
 
     # user is reconnecting
     if room in list(connections.values()):
         if room in games:
-            games[room].reconnect(room)
+            if games[room].stale:
+                del games[room]
+            else:
+                games[room].reconnect(room)
 
     # user is new
     else:
         room = data['id']
         if config.getboolean("Task Parameters", "single_player"):
             testing_user(room)
+            sio.emit("instructions", games[room].role_string(room), room=room)
         else:
             register_user(room)
-
-    # emit instructions corresponding to users role"
-    if "first" in data:
-        sio.emit("instructions", games[room].role_string(room))
         
     connections[sid] = room
     
@@ -151,7 +152,6 @@ def initialState(sid, data):
             game.event(uid, event_type='initial_state', event_data=data)
 
 
-   
 
 ### HTML API ENDPOINTS ###
 @sio.on('getChatMessage')
@@ -194,6 +194,8 @@ def testing_user(uid):
 
 ### MODALITY LOGIC ### 
 def register_user(uid):
+    #todo: validate user (how?)
+
     if uid not in queue:
         queue.append(uid)
 
@@ -202,14 +204,19 @@ def register_user(uid):
         a = queue.pop(0)
         b = queue.pop(0)
 
-        new_game = pattern.HtmlUnityObserve(sio=sio, teacher=a, student=b)
+        # randomly assign role
+        if random.random() > .5:
+            a, b = b, a
 
-        games[a] = new_game
-        games[b] = new_game
-        
+        #todo: randomly assing pattern type here
         print("new game created between: " + str(a) + ' and ' + str(b))
-        sio.emit("sendTrainingMessage", "SYSTEM: You've been matched as teacher.", room=a)
-        sio.emit("sendTrainingMessage", "SYSTEM: You've been matched as student.", room=b)
+        new_game = pattern.HtmlUnityReward(sio=sio, teacher=a, student=b)
+
+        for user in [a, b]:
+            games[user] = new_game
+            sio.emit("sendTrainingMessage", "SYSTEM: You've been matched as "+ games[user].role_string(user), room=user)
+            sio.emit("instructions", games[user].role_string(user), room=user)
+
     else:
         sio.emit("sendTrainingMessage", "SYSTEM: Waiting for a partner.", room=uid)
 

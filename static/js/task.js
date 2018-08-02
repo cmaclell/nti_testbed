@@ -15,17 +15,33 @@ var pages = [
     "success.html"
 ];
 
+var student_instruction_pages = [
+    "instructions/instruct-1-student.html", 
+    "instructions/instruct-2.html",
+    "instructions/instruct-3.html",
+    "instructions/instruct-ready.html"
+];
+
+var teacher_instruction_pages = [
+    "instructions/instruct-1-teacher.html", 
+    "instructions/instruct-2.html",
+    "instructions/instruct-3.html",
+    "instructions/instruct-ready.html"
+];
+
 var instruction_pages = [
-    "instructions/instruct-1.html", 
+    "instructions/instruct-1-teacher.html", 
+    "instructions/instruct-1-student.html",
     "instructions/instruct-2.html",
     "instructions/instruct-3.html",
     "instructions/instruct-ready.html"
 ];
 
 
-psiTurk.preloadPages(pages);
-psiTurk.preloadPages(instruction_pages);
 
+psiTurk.preloadPages(pages);
+psiTurk.preloadPages(student_instruction_pages);
+psiTurk.preloadPages(teacher_instruction_pages);
 
 log = function(data) {
     console.log(data);
@@ -42,27 +58,27 @@ do_instructions = function(arg) {
 
     console.log("instruction request for role: " + arg);
     if (arg == "sandbox") {
-        psiTurk.doInstructions(instruction_pages, function() {psiTurk.showPage('stage.html');});
+        //psiTurk.preloadPages(teacher_instruction_pages);
+        psiTurk.doInstructions(teacher_instruction_pages, function() {psiTurk.showPage('stage.html');});
     }
 
     if (arg == "student") {
-        psiTurk.doInstructions(instruction_pages, function() {psiTurk.showPage('stage.html');});
+        //psiTurk.preloadPages(student_instruction_pages);
+        psiTurk.doInstructions(student_instruction_pages, function() {psiTurk.showPage('stage.html');});
     }
 
     if (arg == "teacher") {
-        psiTurk.doInstructions(instruction_pages, function() {psiTurk.showPage('stage.html');});
+        //psiTurk.preloadPages(teacher_instruction_pages);
+        psiTurk.doInstructions(teacher_instruction_pages, function() {psiTurk.showPage('stage.html');});
     }
 
 }
 
 var socket = io.connect("ws://localhost:5000");
 
-socket.on('instructions', function(arg) { do_instructions(arg) })
+
 socket.on('complete_hit', function(arg) { psiTurk.completeHIT() })
 
-// socket.on('instructions', function(message) {
-//             console.log("instructions: " + message);
-//         });
 
 socket.on('connect', function() {
         socket.emit('join', {'id':  uniqueId});
@@ -70,8 +86,7 @@ socket.on('connect', function() {
 
 
 $(window).load( function(){
-    // stage.html should contain the game object
-    //psiTurk.showPage('stage.html');
     socket.emit('join', {'id':  uniqueId, 'first': true});
-
+    psiTurk.showPage('stage.html');
+    //socket.on('instructions', function(arg) { do_instructions(arg) })
 });

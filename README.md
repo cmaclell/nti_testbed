@@ -1,7 +1,6 @@
 
 **Requirements**
 optional: create and activate virtualenv    
-`pip install -U git+https://github.com/bsheline/psiTurk.git@socketio`
 
 **Installation**  
 
