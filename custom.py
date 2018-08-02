@@ -95,13 +95,14 @@ def on_join(sid, data):
     if room in list(connections.values()):
         if room in games:
             if games[room].stale:
+                print("GAME FINISHED")
                 del games[room]
+                print(room in games)
             else:
                 games[room].reconnect(room)
 
     # user is new
-    else:
-        room = data['id']
+    if room not in games:
         if config.getboolean("Task Parameters", "single_player"):
             testing_user(room)
             sio.emit("instructions", games[room].role_string(room), room=room)
@@ -210,7 +211,10 @@ def register_user(uid):
 
         #todo: randomly assing pattern type here
         print("new game created between: " + str(a) + ' and ' + str(b))
-        new_game = pattern.HtmlUnityReward(sio=sio, teacher=a, student=b)
+        if "demo" in a or "demo" in b:
+            new_game = pattern.HtmlUnityDemonstrate(sio=sio, teacher=a, student=b)
+        else:
+            new_game = pattern.HtmlUnityReward(sio=sio, teacher=a, student=b)
 
         for user in [a, b]:
             games[user] = new_game

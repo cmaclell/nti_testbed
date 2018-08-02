@@ -2,7 +2,6 @@ import socketio
 import util
 from functools import partial
 
-
 class Modality(object):
     pass
 
@@ -40,7 +39,8 @@ class HtmlUnity(Modality):
         self.current_task = 0
         self.requesting_finish = False
         self.stale = False
-
+        self.sio.emit("reset", self.student)
+        self.sio.emit("reset", self.teacher)
 
     def partner(self, actor):
         if actor==self.student:
@@ -51,7 +51,7 @@ class HtmlUnity(Modality):
         
     def role_string(self, actor):
         if self.student == self.teacher:
-            return "sandbox"
+            return "single player"
         if actor==self.student:
             return "student"
         if actor==self.teacher:
@@ -59,6 +59,14 @@ class HtmlUnity(Modality):
         assert False
 
     def chat(self, actor, message):
+        #todo: remove these
+        if message=="refresh":
+            self.emit("load", self.initial_state, room=self.teacher)
+            self.emit("load", self.initial_state, room=self.student)
+
+        if message=="new":
+            self.new_task()
+
         self.emit('sendTrainingMessage', 'YOU: '+ message, room=actor)
         self.emit('sendTrainingMessage', 
             self.role_string(self.partner(actor)) + ': ' + message, 
@@ -72,7 +80,7 @@ class HtmlUnity(Modality):
 
     def event(self, actor, event_type, event_data):
         self.event_dict[event_type](actor, event_data)
-        print("event: " + event_type + ", received by: " + self.role_string(actor))
+        #print("event: " + event_type + ", received by: " + self.role_string(actor))
         # todo: log events here
         self.update_ui(self.teacher)
         self.update_ui(self.student)
@@ -81,7 +89,7 @@ class HtmlUnity(Modality):
         if topic not in self.emissions[room]:
             self.emissions[room][topic] = []
 
-        print("emit: " + topic + ", to: " + str(self.role_string(room)))
+        #print("emit: " + topic + ", to: " + str(self.role_string(room)))
 
         #todo: log emissions here
         self.emissions[room][topic].append(argument)
@@ -116,14 +124,16 @@ class HtmlUnity(Modality):
             # first initial state submitted is chosen 
             self.initial_state = state
             self.current_state = state
-            self.state_state.append(state)
-            self.emit('load', self.current_state, room=self.student)
-            self.emit('load', self.current_state, room=self.teacher)
+            self.state_stack=[state]
             self.unity_lock[self.student] = False
-            self.update_ui(self.teacher)
-            self.update_ui(self.student)
+            print("getting initial state")
+            self.emit('load', self.current_state, room=self.partner(actor))
             #todo log state for training
-
+        else:
+            print("sending initial state: ")
+            self.emit('load', self.current_state, room=actor)
+        self.update_ui(actor)
+            
     def new_task(self):
         self.current_task += 1
         self.initial_state = None
@@ -144,8 +154,8 @@ class HtmlUnity(Modality):
         else:
             self.emit("reset", room=self.teacher)
             self.emit("reset", room=self.student)
-            self.emit("sendTrainingMessage", "SYSTEM: Starting a new teaching task", room=self.teacher)
-            self.emit("sendTrainingMessage", "SYSTEM: Starting a new teaching task", room=self.student)
+            self.emit("sendTrainingMessage", "SYSTEM: Starting a new teaching task.", room=self.teacher)
+            self.emit("sendTrainingMessage", "SYSTEM: Starting a new teaching task.", room=self.student)
         #todo: save prior game and state to list of tasks in this game
 
     def test_mode(self):
@@ -185,14 +195,13 @@ class HtmlUnityTest(HtmlUnity):
                 #self.sio.emit("complete_hit", None, room=actor)
                 #self.stale = True
 
-    def initial_state(self, actor, state):
-        if actor==self.student:
-            pass #todo: log state for testing
+    # def initial_state(self, actor, state):
+    #     if actor==self.student:
+    #         pass #todo: log state for testing
 
 class HtmlUnityReward(HtmlUnity):
     def __init__(self, sio, teacher, student):
         super(HtmlUnityReward, self).__init__(sio=sio, teacher=teacher, student=student)
-        self.training_buttons[self.student] = [{"identifier":"finish:request","buttonText":"finished"}]
         self.unity_lock[self.student] = False
         self.html_lock[self.student] = False
         self.update_ui(self.student)
@@ -202,15 +211,21 @@ class HtmlUnityReward(HtmlUnity):
             assert False
 
         if actor==self.student:
+            # if action['info']['function'] == go:
+            #     question_str = "Is the students planned path "
+            # else:
+            question_str = "Is the students last action good?"
             self.emit('action', action, room=self.teacher)
+
             if self.prev_state is None:
                 self.prev_state = action['prior state']
-            if action['info']['function'] == 'set_waypoint':
+
+            if action['info']['function'] == 'reset000':
                 pass
-            elif action['info']['function'] == 'reset':
+            elif action['info']['function'] == 'set_waypoint000':
                 pass # simply allow the action
             else:
-                self.emit('sendTrainingMessage', "SYSTEM: Is the students' last action good?", room=self.teacher)
+                self.emit('sendTrainingMessage', "SYSTEM: " + question_str, room=self.teacher)
                 #self.prev_state = action['prior state']
                 #self.control = self.teacher
                 self.training_buttons[self.teacher] = [{"identifier":"action:yes","buttonText":"yes"}, 
@@ -231,6 +246,7 @@ class HtmlUnityReward(HtmlUnity):
                 self.emit('sendTrainingMessage', "SYSTEM: The student believes they are finished, allow progress to the next task?", room=self.teacher)
                 self.training_buttons[self.teacher] = [{"identifier":"finish:yes","buttonText":"yes"}, 
                         {"identifier":"finish:no","buttonText":"no"}]
+                self.training_buttons[self.student] = []
                 
 
         if actor==self.teacher:
@@ -257,6 +273,7 @@ class HtmlUnityReward(HtmlUnity):
 
             self.prev_state = None
             self.training_buttons[self.teacher] = []
+            self.training_buttons[self.student] = [{"identifier":"finish:request","buttonText":"finished"}]
 
         self.update_ui(self.teacher)
         self.update_ui(self.student)
