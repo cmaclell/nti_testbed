@@ -94,13 +94,11 @@ def on_join(sid, data):
     # user is reconnecting
     if room in list(connections.values()):
         if room in games:
-            if games[room].stale:
-                print("GAME FINISHED")
-                del games[room]
-                print(room in games)
-            else:
+            if room==games[room].teacher or room==games[room.student] 
                 games[room].reconnect(room)
-
+            else:
+                del games[room]
+                
     # user is new
     if room not in games:
         if config.getboolean("Task Parameters", "single_player"):

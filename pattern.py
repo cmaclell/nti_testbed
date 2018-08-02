@@ -61,8 +61,8 @@ class HtmlUnity(Modality):
     def chat(self, actor, message):
         #todo: remove these
         if message=="refresh":
-            self.emit("load", self.initial_state, room=self.teacher)
-            self.emit("load", self.initial_state, room=self.student)
+            self.emit("load", self.current_state, room=self.teacher)
+            self.emit("load", self.current_state, room=self.student)
 
         if message=="new":
             self.new_task()
@@ -140,12 +140,14 @@ class HtmlUnity(Modality):
         if self.current_task >= self.num_teaching_tasks + self.num_testing_tasks:
             self.emit("complete_hit", "args", room=self.student)
             self.stale = True
+            self.student = None
             # todo: cleanup game here
 
         if self.current_task >= self.num_teaching_tasks:
             self.emit("reset", room=self.student)
             if self.current_task == self.num_teaching_tasks:
                 self.emit("complete_hit", "args", room=self.teacher)
+                self.teacher = None
                 self.emit("sendTrainingMessage", "SYSTEM: Done with the training phase of the experiment. Now you will be tested on your knowledge. Complete the tasks as before, but you will receive no feedback or assistance.", room=self.student)
                 self.test_mode()
             else:
@@ -223,7 +225,7 @@ class HtmlUnityReward(HtmlUnity):
             if action['info']['function'] == 'reset000':
                 pass
             elif action['info']['function'] == 'set_waypoint000':
-                pass # simply allow the action
+                pass
             else:
                 self.emit('sendTrainingMessage', "SYSTEM: " + question_str, room=self.teacher)
                 #self.prev_state = action['prior state']
