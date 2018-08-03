@@ -92,15 +92,15 @@ def on_join(sid, data):
     sio.enter_room(sid, room)
 
     # user is reconnecting
+    busy = False
     if room in list(connections.values()):
         if room in games:
-            if room==games[room].teacher or room==games[room.student] 
+            if not games[room].finished[room]:
                 games[room].reconnect(room)
-            else:
-                del games[room]
+                busy = True
                 
     # user is new
-    if room not in games:
+    if not busy:
         if config.getboolean("Task Parameters", "single_player"):
             testing_user(room)
             sio.emit("instructions", games[room].role_string(room), room=room)

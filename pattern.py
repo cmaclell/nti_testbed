@@ -18,10 +18,10 @@ class HtmlUnity(Modality):
         self.student = student
     
         self.event_dict = {
-                            'button': self.button, 
-                            'action': self.action, 
-                            'chat': self.chat,
-                            'initial_state' : self.initial_state
+                            'button': self.__class__.button, 
+                            'action': self.__class__.action, 
+                            'chat': self.__class__.chat,
+                            'initial_state' : self.__class__.initial_state
                         }
         
         self.unity_lock = {teacher : True, student : True}
@@ -29,6 +29,7 @@ class HtmlUnity(Modality):
         self.training_buttons = {}
         
         self.emissions = {teacher : {}, student : {}}
+        self.finished = {teacher : False, student : False}
         self.initial_state = None
         self.current_state = None
         self.prev_state = None
@@ -41,6 +42,7 @@ class HtmlUnity(Modality):
         self.stale = False
         self.sio.emit("reset", self.student)
         self.sio.emit("reset", self.teacher)
+        
 
     def partner(self, actor):
         if actor==self.student:
@@ -76,23 +78,24 @@ class HtmlUnity(Modality):
         self.emit('load', self.current_state, room=actor)
         self.update_ui(actor)
         print('attempting to reconnect ' + self.role_string(actor))
-        #self.emit('sendTrainingMessage', "SYSTEM: Reconnected as "+self.role_string(actor), room=actor)
+        self.emit('sendTrainingMessage', "SYSTEM: Reconnected as "+self.role_string(actor), room=actor)
 
     def event(self, actor, event_type, event_data):
-        self.event_dict[event_type](actor, event_data)
+        print(str(self.event_dict[event_type]))
+        self.event_dict[event_type](self, actor, event_data)
         #print("event: " + event_type + ", received by: " + self.role_string(actor))
         # todo: log events here
         self.update_ui(self.teacher)
         self.update_ui(self.student)
 
     def emit(self, topic, argument=None, room=None):
-        if topic not in self.emissions[room]:
-            self.emissions[room][topic] = []
+        #if topic not in self.emissions[room]:
+            #self.emissions[room][topic] = []
 
         #print("emit: " + topic + ", to: " + str(self.role_string(room)))
 
         #todo: log emissions here
-        self.emissions[room][topic].append(argument)
+        #self.emissions[room][topic].append(argument)
         self.sio.emit(topic, argument, room=room)
 
     def update_ui(self, uid):
@@ -126,30 +129,31 @@ class HtmlUnity(Modality):
             self.current_state = state
             self.state_stack=[state]
             self.unity_lock[self.student] = False
-            print("getting initial state")
+            print("getting initial state from " + self.role_string(actor))
             self.emit('load', self.current_state, room=self.partner(actor))
             #todo log state for training
         else:
-            print("sending initial state: ")
+            print("sending initial state to " + self.role_string(actor))
             self.emit('load', self.current_state, room=actor)
         self.update_ui(actor)
             
     def new_task(self):
         self.current_task += 1
         self.initial_state = None
+        self.current_state = None
         if self.current_task >= self.num_teaching_tasks + self.num_testing_tasks:
             self.emit("complete_hit", "args", room=self.student)
             self.stale = True
-            self.student = None
+            self.finished[self.student] = True
             # todo: cleanup game here
 
         if self.current_task >= self.num_teaching_tasks:
             self.emit("reset", room=self.student)
             if self.current_task == self.num_teaching_tasks:
                 self.emit("complete_hit", "args", room=self.teacher)
-                self.teacher = None
+                self.finished[self.teacher] = True
                 self.emit("sendTrainingMessage", "SYSTEM: Done with the training phase of the experiment. Now you will be tested on your knowledge. Complete the tasks as before, but you will receive no feedback or assistance.", room=self.student)
-                self.test_mode()
+                self.test_mode(self.student)
             else:
                 self.emit("sendTrainingMessage", "SYSTEM: Starting a new testing task. ", room=self.student)
 
@@ -160,30 +164,41 @@ class HtmlUnity(Modality):
             self.emit("sendTrainingMessage", "SYSTEM: Starting a new teaching task.", room=self.student)
         #todo: save prior game and state to list of tasks in this game
 
-    def test_mode(self):
-        self.action = partial(HtmlUnityTest.action, self)
-        self.button = partial(HtmlUnityTest.button, self)
-        self.button = partial(HtmlUnityTest.initial_state, self)
-        self.unity_lock = {user : False}
-        self.html_lock = {user : False}
-        self.training_buttons[user] = [{"identifier":"finish","buttonText":"finished"}]
+    def test_mode(self, user):
+        self.event_dict['action'] = HtmlUnityTest.action.__func__
+        self.event_dict['button'] = HtmlUnityTest.button.__func__
+
+        #self.button = partial(HtmlUnityTest.initial_state, self)
+        
+        self.unity_lock[user] = False
+        self.html_lock[user] = False
+        self.training_buttons[user] = [{"identifier":"finish","buttonText":"finished"}, {"identifier":"undo","buttonText":"undo"}]
         self.update_ui(user)
 
+   
 class HtmlUnityTest(HtmlUnity):
     def __init__(self, sio, user):
         super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user, num_teaching_tasks=1, num_testing_tasks=1)
+        self.init()
+
+    def init(self):
         self.unity_lock = {user : False}
         self.html_lock = {user : False}
         self.training_buttons[user] = [{"identifier":"finish","buttonText":"finished"}, {"identifier":"undo","buttonText":"undo"}]
         # {"identifier":"instructions","buttonText":"instructions"}, 
         self.update_ui(user)
 
+
     def action(self, actor, action):
+        print("test action")
+        self.training_buttons[actor] = [{"identifier":"finish","buttonText":"finished"}, {"identifier":"undo","buttonText":"undo"}]
         if actor==self.student:
             self.state_stack.append(action['prior state'])
             #self.emit('sendTrainingMessage', "SYSTEM: You performed action " + str(action['info']['function']), room=actor)
+        self.update_ui(actor)
 
     def button(self, actor, button_id):
+        print("test button")
         if actor==self.student:
             #self.emit('sendTrainingMessage', "SYSTEM: You clicked button labeled " + str(button_id), room=actor)
             if button_id == "undo":
@@ -197,6 +212,7 @@ class HtmlUnityTest(HtmlUnity):
                 #self.sio.emit("complete_hit", None, room=actor)
                 #self.stale = True
 
+
     # def initial_state(self, actor, state):
     #     if actor==self.student:
     #         pass #todo: log state for testing
@@ -206,6 +222,7 @@ class HtmlUnityReward(HtmlUnity):
         super(HtmlUnityReward, self).__init__(sio=sio, teacher=teacher, student=student)
         self.unity_lock[self.student] = False
         self.html_lock[self.student] = False
+        self.training_buttons[self.student] = [{"identifier":"finish:request","buttonText":"finished"}]
         self.update_ui(self.student)
 
     def action(self, actor, action):
@@ -232,6 +249,7 @@ class HtmlUnityReward(HtmlUnity):
                 #self.control = self.teacher
                 self.training_buttons[self.teacher] = [{"identifier":"action:yes","buttonText":"yes"}, 
                         {"identifier":"action:no","buttonText":"no"}]
+                self.training_buttons[self.student] = []
                 self.unity_lock[self.student] = True
                 self.html_lock[self.student] = True
                 self.html_lock[self.teacher] = False

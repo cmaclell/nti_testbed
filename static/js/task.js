@@ -17,16 +17,14 @@ var pages = [
 
 var student_instruction_pages = [
     "instructions/instruct-1-student.html", 
-    "instructions/instruct-2.html",
-    "instructions/instruct-3.html",
-    "instructions/instruct-ready.html"
+   
 ];
 
 var teacher_instruction_pages = [
     "instructions/instruct-1-teacher.html", 
-    "instructions/instruct-2.html",
-    "instructions/instruct-3.html",
-    "instructions/instruct-ready.html"
+    // "instructions/instruct-2.html",
+    // "instructions/instruct-3.html",
+    // "instructions/instruct-ready.html"
 ];
 
 var instruction_pages = [
