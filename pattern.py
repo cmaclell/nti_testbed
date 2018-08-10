@@ -3,7 +3,7 @@ import util
 from functools import partial
 import pickle
 import traceback
-
+import os
 import button_menu
 
 class Modality(object):
@@ -66,35 +66,48 @@ class HtmlUnity(Modality):
 
     def chat(self, actor, message):
         def stage_file(name):
-            return open(os.path.join(__file__, "static", "stages", + name +  ".p"))
+            return os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "stages", str(name) +  ".p")
         
         if message[:4]=="load":
             try:
                 s = message.split()
-                f = pickle.load(stage_file(s[1]))
+                path = stage_file(s[1])
+                f = pickle.load(open(path, 'rb'))
                 self.current_state = f
                 self.initial_state = f
                 self.prev_state = None
                 self.state_stack = []
                 self.emit("load", self.current_state, room=actor)
+                self.emit('sendTrainingMessage', "SYSTEM: stage loaded from: " + path, room=actor)
             except:
                 print("ERROR LOADING STATE:")
                 traceback.print_exc()
+            return
 
         if message[:4]=="save":
             try:
                 s = message.split()
-                pickle.dump(self.current_state, stage_file(s[1]))
+                path = stage_file(s[1])
+                pickle.dump(self.current_state, open(path, 'wb+'))
+                self.emit('sendTrainingMessage', "SYSTEM: stage saved: " + path, room=actor)
             except:
                 print("ERROR SAVING STATE:")
                 traceback.print_exc()
+            return
 
         if message=="refresh":
             self.emit("load", self.current_state, room=self.teacher)
             self.emit("load", self.current_state, room=self.student)
+            return
 
         if message=="new":
             self.new_task()
+            return
+
+        if message=="asdf":
+            print('asdf')
+            return
+
 
         self.emit('sendTrainingMessage', 'YOU: '+ message, room=actor)
         self.emit('sendTrainingMessage', 
