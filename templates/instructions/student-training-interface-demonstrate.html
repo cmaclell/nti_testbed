@@ -1,0 +1,65 @@
+<div id="container-instructions">
+
+	<h1>Training Interface</h1>
+	<hr>
+	<div class="instructions well">
+        <h2>Overview</h2>
+	    <p>
+            In addition to the task interface, you will also have a training
+            interface on the right side of the screen that you can use to
+            receive task instruction from the teacher.
+        </p>
+
+        <h2>Example of interface</h2>
+        <p>
+          The image below shows what this interface will look like.
+        </p>
+
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            border:1px solid #021a40;
+            width: 25%;"
+            src="/static/images/student-training-interface-demonstrate.png"
+            alt="training interface">
+        </p>
+
+        <h2>Allowed actions</h2>
+        <p>
+            For this experiment, you will not be allowed to take any actions
+            during training. Instead, you will just be able to observe the
+            demonstrations of how to do the task from the AI teacher. 
+	    </p>
+
+        <h2>Interaction Log</h2>
+        <p>Throughout the training process all interactions with the AI student
+            will be recorded in the training interaction log shown in the
+            images above.
+        </p>
+
+	    <script type="text/javascript">
+	    //console.log(psiTurk.getInstructionIndicator())
+	    </script>
+
+	</div>
+
+	<hr>
+    <div class="instructionsnav">
+        <div class="row">
+            <div class="col-xs-2">
+            	<!-- no previous button on first screen -->
+                 <button type="button" id="prev" value="prev" class="btn btn-primary btn-lg previous">
+                <span class="glyphicon glyphicon-arrow-left"></span> Previous
+                </button>
+            </div>
+            <div class="col-xs-8">
+            </div>
+            <div class="col-xs-2">
+                <button type="button" id="next" value="next"
+                    class="btn btn-primary btn-lg continue">
+                Next <span class="glyphicon glyphicon-arrow-right"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

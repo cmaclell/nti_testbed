@@ -1,0 +1,97 @@
+<div id="container-instructions">
+
+	<h1>Task Interface</h1>
+	<hr>
+	<div class="instructions well">
+        <h2>Overview</h2>
+        <p>
+            For this experiment, you will be teaching an AI to control a robot
+            in a simulated office environment. The simulated robot will be able
+            to sense its environment by emitting lasers, which it can use to
+            determinue where walls are and detect objects it can interact with
+            in its environment. Additionally, the robot has an arm that it can
+            use to pickup and put down objects in the environment.
+        <h2>Interface Example</h2>
+	    <p>
+            Here is an example of someone using the task interface that you
+            will be guiding the AI student to use.
+        </p>
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            width: 80%;"
+            src="/static/images/teacher-task-interface-demo.gif"
+            alt="Task interface demo">
+        </p>
+        
+        <h2>Possible Actions</h2>
+        <p>
+            The interface is for controlling a simple simulated robot that can
+            sense and act in its environment. There are five possible actions
+            in this interface:
+            <ul>
+                <li>
+                    <strong>Clicking on the screen</strong> sets waypoints for
+                    the robot.
+                </li>
+                <li>
+                    <strong>Pressing the "Action 1" button</strong> makes the
+                    robot follow the active waypoints. As the robot moves it
+                    actively senses its environment and updates its model, as
+                    reflected by the white dots, which correspond to locations
+                    where its sensors detected a wall or obstacle, and the
+                    colored shapes, which correspond to objects in the robot
+                    has detected in the environment.
+                </li>
+                <li>
+                    <strong>Pressing the "Action 2" button</strong> deletes all
+                    the active waypoints.
+                </li>
+                <li>
+                    <strong>Pressing the "Action 3" button</strong> while over
+                    an object (the colored shapes) makes the robot pickup the
+                    object and put it in its inventory. Only one object can be
+                    held at a time.
+                </li>
+                <li>
+                    <strong>Pressing the "Action 4" button</strong> will drop
+                    an object that is currently in the robot's inventory.
+                </li>
+            </ul>
+	    </p>
+        
+        <h2>Avoiding Obstacles</h2>
+        <p>
+            The robot is unable to move through obstacles. If it encounters an
+            obstacle it will do its best to continue following its waypoints,
+            but if it gets stuck then it will stop moving and its waypoints
+            will reset.  For more efficient movement, try not to set waypoints
+            that cause the robots path to encounter any obstacles
+        </p>
+
+	    <script type="text/javascript">
+	    //console.log(psiTurk.getInstructionIndicator())
+	    </script>
+
+	</div>
+
+	<hr>
+    <div class="instructionsnav">
+        <div class="row">
+            <div class="col-xs-2">
+            	<!-- no previous button on first screen -->
+                 <button type="button" id="prev" value="prev" class="btn btn-primary btn-lg previous">
+                <span class="glyphicon glyphicon-arrow-left"></span> Previous
+                </button>
+            </div>
+            <div class="col-xs-8">
+            </div>
+            <div class="col-xs-2">
+                <button type="button" id="next" value="next"
+                    class="btn btn-primary btn-lg continue">
+                Next <span class="glyphicon glyphicon-arrow-right"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

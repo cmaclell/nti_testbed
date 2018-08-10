@@ -60,10 +60,12 @@ def send_Build(path):
     print('serving template data')
     return send_from_directory('static/TemplateData', path)
 
+
 @custom_code.route('/Build/<path:path>')
 @exception
 def send_template(path):   
     return send_from_directory('templates/Build', path)
+
 
 @custom_code.route('/js/<path:path>', methods=['GET', 'POST'])
 @exception
@@ -114,53 +116,58 @@ def on_ (sid, data):
     # user is new
     if not busy:
         if config.getboolean("Task Parameters", "single_player"):
-            testing_user(room)         
+            testing_user(room)
         else:
             register_user(room)
-        
-        
+
+    sio.emit("unlockChatBox", room=room)
+
     connections[sid] = room
     
 
-### UNITY WEBSOCKET API ENDPOINTS ###
+
+# UNITY WEBSOCKET API ENDPOINTS
 @sio.on('action')
 @exception
 def action(sid, data):
-    #print(str(data))
+    
     """action(action_info-> as json)
-    The unity game sends this function each time it performs an action, which could be setting a waypoint, 
-    or clicking any of the two to four action buttons (go, clear waypoints, pickup object, put down object) 
-    Feed this JSON back into action() (sent from flask to unity) to make the unity game perform this action. 
-    You can also feed just the prior state into load() to reset the scene back to how it was before the action was taken.
+    The unity game sends this function each time it performs an action, which
+    could be setting a waypoint, or clicking any of the two to four action
+    buttons (go, clear waypoints, pickup object, put down object) Feed this
+    JSON back into action() (sent from flask to unity) to make the unity game
+    perform this action.  You can also feed just the prior state into load() to
+    reset the scene back to how it was before the action was taken.
     """
     data['arguments']['alreadyPlayed'] = True if data['arguments']['alreadyPlayed'] == 'True' else False
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
     if game is not None:
-        #print("size of action object before: " + str(sys.getsizeof(data)))
-        #data["prior state"] = None
-        #print("size of action object after: " + str(sys.getsizeof(data)))
+        # print("size of action object before: " + str(sys.getsizeof(data)))
+        # data["prior state"] = None
+        # print("size of action object after: " + str(sys.getsizeof(data)))
         game.event(uid, event_type='action', event_data=data)
-        
-   
+
+
 @sio.on('initialState')
 @exception
 def initialState(sid, data):
     """
     initialState(serialized_state-> as json)
-    The initial state of the unity game. Called when the unity game first connects and each time 
-    it reconnects after it resets from the reset button. Gives the game state that can be fed into load() 
-    to make the game state be how it is initially
+    The initial state of the unity game. Called when the unity game first
+    connects and each time it reconnects after it resets from the reset button.
+    Gives the game state that can be fed into load() to make the game state be
+    how it is initially
     """
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
     if game is not None:
         if game.student == uid:
-        #game.event(uid, event_type='set_initial_state', event_data=data)
-            #game.initial_state = data
-            #sio.emit('load', game.initial_state, room=game.teacher)
+            # game.event(uid, event_type='set_initial_state', event_data=data)
+            # game.initial_state = data
+            # sio.emit('load', game.initial_state, room=game.teacher)
             game.event(uid, event_type='initial_state', event_data=data)
 
 
@@ -213,6 +220,7 @@ def getChatMessage(sid, data):
     if game is not None:
         game.event(uid, event_type='chat', event_data=data['message'])
 
+
 @sio.on('onTrainingButtonPress')
 @exception
 def onTrainingButtonPress(sid, data):
@@ -229,6 +237,7 @@ def onTrainingButtonPress(sid, data):
         game.event(uid, event_type='button', event_data=data['identifier'])
 
     print("training button pressed: ", data['identifier'])
+
 
 def testing_user(uid):
     new_game = pattern.HtmlUnityTest(sio=sio, user=uid)

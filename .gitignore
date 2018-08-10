@@ -1,9 +1,15 @@
-/custom.pyc
-
 /participants.db
-
 /server.log
-
 /.psiturk_history
 
+.Python
 *.pyc
+*.swp
+.DS_Store
+
+bin/
+include/
+lib/
+logs/
+pysqlite2-doc/
+pip-selfcheck.json

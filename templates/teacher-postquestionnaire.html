@@ -1,0 +1,324 @@
+<div id="container-questionnaire">
+    <h1>Task Complete</h1>
+
+    <p>You are finished! Thank you for your participation in this experiment. You will be eligible for full payment once you answer the following questions.</p>
+
+    <hr />
+
+    <div class="instructions well">
+
+        <h4>
+            Please rate how much you <em>agree</em> or <em>disagree</em> with
+            the following statements and provide additional comments where
+            appropriate (fields with a <span class="required">*</span> are
+            required):
+        </h4>
+
+        <form id="postquiz" action="debrief" method="post">
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    Please provide a 1-2 sentence description of the task you
+                    taught to the AI student.<span class='required'>*</span>
+                </div>
+                <div>
+                    <textarea rows="3" name="description_of_target_task"></textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    The AI student learned to correctly perform the task by the end of training.<span class='required'>*</span>
+                </div>
+                <div>
+                    <ul class='likert'>
+                      <li>
+                        <input type="radio" name="student_learned_task" value="strongly_disagree">
+                        <label>Strongly disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_learned_task" value="disagree">
+                        <label>Disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_learned_task" value="neither_agree_nor_disagree">
+                        <label>Neither agree nor disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_learned_task" value="agree">
+                        <label>Agree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_learned_task" value="strongly_agree">
+                        <label>Strongly agree</label>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    The AI student only needed a few examples to learn.<span class='required'>*</span>
+                </div>
+                <div>
+                    <ul class='likert'>
+                      <li>
+                        <input type="radio" name="student_required_few_examples" value="strongly_disagree">
+                        <label>Strongly disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_required_few_examples" value="disagree">
+                        <label>Disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_required_few_examples" value="neither_agree_nor_disagree">
+                        <label>Neither agree nor disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_required_few_examples" value="agree">
+                        <label>Agree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_required_few_examples" value="strongly_agree">
+                        <label>Strongly agree</label>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    The AI student quickly decided what actions to take next.<span class='required'>*</span>
+                </div>
+                <div>
+                    <ul class='likert'>
+                      <li>
+                        <input type="radio" name="student_was_responsive" value="strongly_disagree">
+                        <label>Strongly disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_was_responsive" value="disagree">
+                        <label>Disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_was_responsive" value="neither_agree_nor_disagree">
+                        <label>Neither agree nor disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_was_responsive" value="agree">
+                        <label>Agree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="student_was_responsive" value="strongly_agree">
+                        <label>Strongly agree</label>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    Instructing to the AI student was natural and intuitive.<span class='required'>*</span>
+                </div>
+                <div>
+                    <ul class='likert'>
+                      <li>
+                        <input type="radio" name="instruction_was_natural" value="strongly_disagree">
+                        <label>Strongly disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="instruction_was_natural" value="disagree">
+                        <label>Disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="instruction_was_natural" value="neither_agree_nor_disagree">
+                        <label>Neither agree nor disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="instruction_was_natural" value="agree">
+                        <label>Agree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="instruction_was_natural" value="strongly_agree">
+                        <label>Strongly agree</label>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    The instructional options I was presented with were always useful.<span class='required'>*</span>
+                </div>
+                <div>
+                    <ul class='likert'>
+                      <li>
+                        <input type="radio" name="instruction_options_were_useful" value="strongly_diagree">
+                        <label>Strongly disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="instruction_options_were_useful" value="disagree">
+                        <label>Disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="instruction_options_were_useful" value="neither_agree_nor_disagree">
+                        <label>Neither agree nor disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="instruction_options_were_useful" value="agree">
+                        <label>Agree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="instruction_options_were_useful" value="strongly_agree">
+                        <label>Strongly agree</label>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    Please describe any instructional options that you did not
+                    think were useful as well as the situations in which they
+                    occured.
+                </div>
+                <div>
+                    <textarea rows="3" name="describe_non_useful_instructional_options"></textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    I was always provided with all the instructional options I wanted.<span class='required'>*</span>
+                </div>
+                <div>
+                    <ul class='likert'>
+                      <li>
+                        <input type="radio" name="desired_instruction_options_were_available" value="strongly_disagree">
+                        <label>Strongly disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="desired_instruction_options_were_available" value="disagree">
+                        <label>Disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="desired_instruction_options_were_available" value="neither_agree_nor_disagree">
+                        <label>Neither agree nor disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="desired_instruction_options_were_available" value="agree">
+                        <label>Agree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="desired_instruction_options_were_available" value="strongly_agree">
+                        <label>Strongly agree</label>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    Please describe any additional instructional options you would have liked to have.
+                </div>
+                <div>
+                    <textarea rows="3" name="describe_additional_instructional_options"></textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    Instructing the AI student was easy.<span class='required'>*</span>
+                </div>
+                <div>
+                    <ul class='likert'>
+                      <li>
+                        <input type="radio" name="ease_of_instruction" value="strongly_disagree">
+                        <label>Strongly disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="ease_of_instruction" value="disagree">
+                        <label>Disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="ease_of_instruction" value="neither_agree_nor_disagree">
+                        <label>Neither agree nor disagree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="ease_of_instruction" value="agree">
+                        <label>Agree</label>
+                      </li>
+                      <li>
+                        <input type="radio" name="ease_of_instruction" value="strongly_agree">
+                        <label>Strongly agree</label>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    If you were to teach the AI student again, what might you do differently?<span class='required'>*</span>
+                </div>
+                <div>
+                    <textarea rows="3" name="describe_what_you_would_do_different"></textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+            <!-- beginning of a question -->
+            <div class="row question">
+                <div>
+                    Do you have any other comments you would like to share?
+            </div>
+                <div>
+                    <textarea rows="3" name="additional_comments"></textarea>
+                </div>
+            </div>
+            <!-- end of a question -->
+
+        </form>
+
+        <div id="all_fields_warning">
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="instructionsnav">
+        <div class="row">
+            <div class="col-xs-2">
+            </div>
+            <div class="col-xs-7">
+            </div>
+            <div class="col-xs-3">
+                <button type="button" id="next" value="next" class="btn btn-primary btn-lg continue">
+                    Continue <span class="glyphicon glyphicon-arrow-right"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+</div>
