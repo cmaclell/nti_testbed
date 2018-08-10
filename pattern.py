@@ -2,6 +2,8 @@ import socketio
 import util
 from functools import partial
 
+import button_menu
+
 class Modality(object):
     pass
 
@@ -171,7 +173,7 @@ class HtmlUnity(Modality):
         
         self.unity_lock[user] = False
         self.html_lock[user] = False
-        self.training_buttons[user] = [{"identifier":"finish","buttonText":"finished"}, {"identifier":"undo","buttonText":"undo"}]
+        self.training_buttons[user] = button_menu.test
         self.update_ui(user)
 
    
@@ -183,14 +185,14 @@ class HtmlUnityTest(HtmlUnity):
     def init(self, user):
         self.unity_lock = {user : False}
         self.html_lock = {user : False}
-        self.training_buttons[user] = [{"identifier":"finish","buttonText":"finished"}, {"identifier":"undo","buttonText":"undo"}]
+        self.training_buttons[user] = button_menu.test
         # {"identifier":"instructions","buttonText":"instructions"}, 
         self.update_ui(user)
 
 
     def action(self, actor, action):
         print("test action")
-        self.training_buttons[actor] = [{"identifier":"finish","buttonText":"finished"}, {"identifier":"undo","buttonText":"undo"}]
+        self.training_buttons[actor] = button_menu.test
         if actor==self.student:
             self.state_stack.append(action['prior state'])
             #self.emit('sendTrainingMessage', "SYSTEM: You performed action " + str(action['info']['function']), room=actor)
@@ -221,7 +223,7 @@ class HtmlUnityReward(HtmlUnity):
         super(HtmlUnityReward, self).__init__(sio=sio, teacher=teacher, student=student)
         self.unity_lock[self.student] = False
         self.html_lock[self.student] = False
-        self.training_buttons[self.student] = [{"identifier":"finish:request","buttonText":"finished"}]
+        self.training_buttons[self.student] = button_menu.reward_student
         self.update_ui(self.student)
 
     def action(self, actor, action):
@@ -246,8 +248,7 @@ class HtmlUnityReward(HtmlUnity):
                 self.emit('sendTrainingMessage', "SYSTEM: " + question_str, room=self.teacher)
                 #self.prev_state = action['prior state']
                 #self.control = self.teacher
-                self.training_buttons[self.teacher] = [{"identifier":"action:yes","buttonText":"yes"}, 
-                        {"identifier":"action:no","buttonText":"no"}]
+                self.training_buttons[self.teacher] = button_menu.reward_teacher
                 self.training_buttons[self.student] = []
                 self.unity_lock[self.student] = True
                 self.html_lock[self.student] = True
@@ -263,8 +264,7 @@ class HtmlUnityReward(HtmlUnity):
                 self.html_lock[self.teacher] = False
                 self.html_lock[self.student] = True
                 self.emit('sendTrainingMessage', "SYSTEM: The student believes they are finished, allow progress to the next task?", room=self.teacher)
-                self.training_buttons[self.teacher] = [{"identifier":"finish:yes","buttonText":"yes"}, 
-                        {"identifier":"finish:no","buttonText":"no"}]
+                self.training_buttons[self.teacher] = button_menu.confirm_finished
                 self.training_buttons[self.student] = []
                 
 
@@ -292,7 +292,7 @@ class HtmlUnityReward(HtmlUnity):
 
             self.prev_state = None
             self.training_buttons[self.teacher] = []
-            self.training_buttons[self.student] = [{"identifier":"finish:request","buttonText":"finished"}]
+            self.training_buttons[self.student] = button_menu.reward_student
 
         self.update_ui(self.teacher)
         self.update_ui(self.student)
@@ -301,7 +301,7 @@ class HtmlUnityReward(HtmlUnity):
 class HtmlUnityDemonstrate(HtmlUnity):
     def __init__(self, sio, teacher, student):
         super(HtmlUnityDemonstrate, self).__init__(sio=sio, teacher=teacher, student=student)
-        self.training_buttons[self.teacher] = [{"identifier":"finish:request","buttonText":"finished"}, {"identifier":"undo","buttonText":"undo"}]
+        self.training_buttons[self.teacher] = button_menu.demonstrate_teacher
         self.unity_lock[self.teacher] = False
         self.html_lock[self.teacher] = False
         self.html_lock[self.student] = True
@@ -331,9 +331,7 @@ class HtmlUnityDemonstrate(HtmlUnity):
 def HtmlUnityApprentice(HtmlUnity):
     def __init__(self, sio, teacher, student):
         super(HtmlUnityApprentice, self).__init__(sio=sio, teacher=teacher, student=student)
-        self.training_buttons[self.student] = [ {"identifier":"help:request","buttonText":"help"},
-                                                {"identifier":"finish:request","buttonText":"finished"}, 
-                                                {"identifier":"undo","buttonText":"undo"}]
+        self.training_buttons[self.student] = button_menu.apprentice_student
         self.unity_lock[self.teacher] = False
         self.html_lock[self.teacher] = False
         self.update_ui(self.teacher)
@@ -348,9 +346,7 @@ def HtmlUnityApprentice(HtmlUnity):
                     self.prev_state = action['prior state']
                 self.demonstrate=False
 
-                self.training_buttons[self.student] = [ {"identifier":"help:request","buttonText":"help"},
-                                                {"identifier":"finish:request","buttonText":"finished"}, 
-                                                {"identifier":"undo","buttonText":"undo"}]
+                self.training_buttons[self.student] = button_menu.apprentice_student
 
                 self.unity_lock[self.teacher] = True
                 self.html_lock[self.teacher] = False
@@ -376,8 +372,7 @@ def HtmlUnityApprentice(HtmlUnity):
                 self.emit('sendTrainingMessage', "SYSTEM: " + question_str, room=self.teacher)
                 #self.prev_state = action['prior state']
                 #self.control = self.teacher
-                self.training_buttons[self.teacher] = [{"identifier":"action:yes","buttonText":"yes"}, 
-                        {"identifier":"action:no","buttonText":"no"}]
+                self.training_buttons[self.teacher] = button_menu.apprentice_teacher
                 self.training_buttons[self.student] = []
                 self.unity_lock[self.student] = True
                 self.html_lock[self.student] = True
@@ -393,8 +388,7 @@ def HtmlUnityApprentice(HtmlUnity):
                 self.html_lock[self.teacher] = False
                 self.html_lock[self.student] = True
                 self.emit('sendTrainingMessage', "SYSTEM: The student believes they are finished, allow progress to the next task?", room=self.teacher)
-                self.training_buttons[self.teacher] = [{"identifier":"finish:yes","buttonText":"yes"}, 
-                        {"identifier":"finish:no","buttonText":"no"}]
+                self.training_buttons[self.teacher] = button_menu.confirm_finished
                 self.training_buttons[self.student] = []
             if button_id == "help:request":
                 self.unity_lock[self.student] = True
@@ -428,18 +422,15 @@ def HtmlUnityApprentice(HtmlUnity):
 
             self.prev_state = None
             self.training_buttons[self.teacher] = []
-            self.training_buttons[self.student] = [{"identifier":"finish:request","buttonText":"finished"}]
+            self.training_buttons[self.student] = button_menu.apprentice_student
 
         self.update_ui(self.teacher)
         self.update_ui(self.student)
 
 
-
 if __name__ == "__main__":
-
-    print("blah")
     HtmlUnityReward(sio="sio", teacher="teacher", student="student")
-    HtmlUnityDemonstrate(sio="sio", teacher="teacher", student="student")
+    #HtmlUnityDemonstrate(sio="sio", teacher="teacher", student="student")
 
 
 
