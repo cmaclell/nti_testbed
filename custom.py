@@ -126,13 +126,14 @@ def on_ (sid, data):
 @sio.on('action')
 @exception
 def action(sid, data):
-    
+    #print(str(data))
     """action(action_info-> as json)
     The unity game sends this function each time it performs an action, which could be setting a waypoint, 
     or clicking any of the two to four action buttons (go, clear waypoints, pickup object, put down object) 
     Feed this JSON back into action() (sent from flask to unity) to make the unity game perform this action. 
     You can also feed just the prior state into load() to reset the scene back to how it was before the action was taken.
     """
+    data['arguments']['alreadyPlayed'] = True if data['arguments']['alreadyPlayed'] == 'True' else False
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
@@ -161,6 +162,27 @@ def initialState(sid, data):
             #game.initial_state = data
             #sio.emit('load', game.initial_state, room=game.teacher)
             game.event(uid, event_type='initial_state', event_data=data)
+
+
+@sio.on('endedAction')
+@exception
+def endedAction(sid):
+    """
+    initialState(serialized_state-> as json)
+    The initial state of the unity game. Called when the unity game first connects and each time 
+    it reconnects after it resets from the reset button. Gives the game state that can be fed into load() 
+    to make the game state be how it is initially
+    """
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
+    print("ended action called")
+
+    if game is not None:
+        if game.student == uid:
+        #game.event(uid, event_type='set_initial_state', event_data=data)
+            #game.initial_state = data
+            #sio.emit('load', game.initial_state, room=game.teacher)
+            game.ended_action(uid)
 
 
 
@@ -210,7 +232,7 @@ def onTrainingButtonPress(sid, data):
 
 def testing_user(uid):
     new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
-    sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
+    sio.emit("sendTrainingMessage", "* Entering sandbox mode.", room=uid)
     games[uid] = new_game
     sio.emit("instructions", games[uid].role_string(uid), room=uid)
         
@@ -240,11 +262,11 @@ def register_user(uid):
 
         for user in [a, b]:
             games[user] = new_game
-            sio.emit("sendTrainingMessage", "SYSTEM: You've been matched as "+ games[user].role_string(user), room=user)
+            sio.emit("sendTrainingMessage", "* You've been matched as "+ games[user].role_string(user) + ".", room=user)
             sio.emit("instructions", games[user].role_string(user), room=user)
 
     else:
-        sio.emit("sendTrainingMessage", "SYSTEM: Waiting for a partner.", room=uid)
+        sio.emit("sendTrainingMessage", "* Waiting for a partner.", room=uid)
 
     # new_user = User.query.filter(User.user_id==uid).first()
     #waiting = User.query.filter(User.task==None).order_by(User.last_active.desc()).first()
