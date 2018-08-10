@@ -30,7 +30,7 @@ class HtmlUnity(Modality):
         
         self.unity_lock = {teacher : True, student : True}
         self.html_lock = {teacher : True, student : True}
-        self.training_buttons = {}
+        self.training_buttons = {teacher : [], student : []}
         self.read_instructions = {teacher : False, student : False}
         self.emissions = {teacher : {}, student : {}}
         self.finished = {teacher : False, student : False}
@@ -68,6 +68,8 @@ class HtmlUnity(Modality):
         def stage_file(name):
             return os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "stages", str(name) +  ".p")
         
+
+
         if message[:4]=="load":
             try:
                 s = message.split()
@@ -77,10 +79,14 @@ class HtmlUnity(Modality):
                 self.initial_state = f
                 self.prev_state = None
                 self.state_stack = []
-                self.emit("load", self.current_state, room=actor)
-                self.emit('sendTrainingMessage', "SYSTEM: stage loaded from: " + path, room=actor)
+                self.emit("load", self.current_state, room=self.teacher)
+                self.emit('sendTrainingMessage', "SYSTEM: stage loaded from: " + path, room=self.teacher)
+
+                if self.student!=self.teacher:
+                    self.emit("load", self.current_state, room=self.student)
+                    self.emit('sendTrainingMessage', "SYSTEM: stage loaded from: " + path, room=self.student)
             except:
-                print("ERROR LOADING STATE:")
+                print("error loading state:")
                 traceback.print_exc()
             return
 
@@ -89,9 +95,9 @@ class HtmlUnity(Modality):
                 s = message.split()
                 path = stage_file(s[1])
                 pickle.dump(self.current_state, open(path, 'wb+'))
-                self.emit('sendTrainingMessage', "SYSTEM: stage saved: " + path, room=actor)
+                self.emit('sendTrainingMessage', "SYSTEM: stage saved to: " + path, room=actor)
             except:
-                print("ERROR SAVING STATE:")
+                print("error saving state:")
                 traceback.print_exc()
             return
 
@@ -104,21 +110,16 @@ class HtmlUnity(Modality):
             self.new_task()
             return
 
-        if message=="asdf":
-            print('asdf')
-            return
-
-
         self.emit('sendTrainingMessage', 'YOU: '+ message, room=actor)
         self.emit('sendTrainingMessage', 
-            self.role_string(self.partner(actor)) + ': ' + message, 
+            self.role_string(actor) + ': ' + message, 
             room=self.partner(actor))
 
     def reconnect(self, actor):
         self.emit('load', self.current_state, room=actor)
         self.update_ui(actor)
         print('attempting to reconnect ' + self.role_string(actor))
-        self.emit('sendTrainingMessage', "SYSTEM: Reconnected as "+self.role_string(actor), room=actor)
+        self.emit('sendTrainingMessage', "SYSTEM: Reconnected as "+self.role_string(actor) + " in " + self.__class__.__name__, room=actor)
 
     def event(self, actor, event_type, event_data):
         print(str(self.event_dict[event_type]))
@@ -355,7 +356,7 @@ class HtmlUnityDemonstrate(HtmlUnity):
     
     def button(self, actor, button_id):
         if actor==self.teacher:
-            if button_id == "finish:request":
+            if button_id == "finish":
                 self.new_task()
         
             if button_id == "undo":
@@ -366,12 +367,12 @@ class HtmlUnityDemonstrate(HtmlUnity):
         self.update_ui(self.teacher)
         self.update_ui(self.student)
 
-def HtmlUnityApprentice(HtmlUnity):
+class HtmlUnityApprentice(HtmlUnity):
     def __init__(self, sio, teacher, student):
         super(HtmlUnityApprentice, self).__init__(sio=sio, teacher=teacher, student=student)
         self.training_buttons[self.student] = button_menu.apprentice_student
-        self.unity_lock[self.teacher] = False
-        self.html_lock[self.teacher] = False
+        self.unity_lock[self.student] = False
+        self.html_lock[self.student] = False
         self.update_ui(self.teacher)
         self.update_ui(self.student)
         self.demonstrate=False
@@ -433,6 +434,7 @@ def HtmlUnityApprentice(HtmlUnity):
                 self.html_lock[self.student] = True
                 self.emit('sendTrainingMessage', "SYSTEM: The student is unsure of what to do next, take a single move to give them a hint.", room=self.teacher)
                 self.unity_lock[self.teacher] = False
+                self.demonstrate = True
                 self.training_buttons[self.student] = []
                 self.training_buttons[self.teacher] = []
 

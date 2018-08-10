@@ -91,6 +91,7 @@ def on_ (sid, data):
     room = data['id']
     sio.enter_room(sid, room)
 
+    sio.emit("unlockChatBox", room=room)
 
     # user is reconnecting
     busy = False
@@ -176,6 +177,17 @@ def getChatMessage(sid, data):
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
+    new_game_commands = {"demonstrate": pattern.HtmlUnityDemonstrate,
+                         "apprentice": pattern.HtmlUnityApprentice,
+                         "reward": pattern.HtmlUnityReward }
+
+    if data['message'] in new_game_commands.keys():
+        if game is not None:   
+            new_game = new_game_commands[data['message']](game.sio, game.teacher, game.student)
+            games[game.teacher] = new_game
+            games[game.student] = new_game
+            return
+    
     if game is not None:
         game.event(uid, event_type='chat', event_data=data['message'])
 
@@ -197,11 +209,10 @@ def onTrainingButtonPress(sid, data):
     print("training button pressed: ", data['identifier'])
 
 def testing_user(uid):
-    if uid not in games:
-        new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
-        sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
-        games[uid] = new_game
-        sio.emit("instructions", games[uid].role_string(uid), room=uid)
+    new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
+    sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
+    games[uid] = new_game
+    sio.emit("instructions", games[uid].role_string(uid), room=uid)
         
 
 ### MODALITY LOGIC ### 
@@ -225,7 +236,7 @@ def register_user(uid):
         if "demo" in a or "demo" in b:
             new_game = pattern.HtmlUnityDemonstrate(sio=sio, teacher=a, student=b)
         else:
-            new_game = pattern.HtmlUnityReward(sio=sio, teacher=a, student=b)
+            new_game = pattern.HtmlUnityApprentice(sio=sio, teacher=a, student=b)
 
         for user in [a, b]:
             games[user] = new_game
