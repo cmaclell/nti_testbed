@@ -171,7 +171,7 @@
                 <p id="actorTitle" class="hasOutline"> ----- </p>
 -->
 
-        <h4>Chat Log</h4>
+        <h4>Interaction Log</h4>
         <div id="serverMessages" class="hasOutline">
         </div>
         <div id="chatmessageDiv">
@@ -307,7 +307,7 @@
 
             document.getElementById('holdButtons').innerHTML += '<div class="recievedButtonContainer"><button class="recievedButton" onclick="socket.emit(\'onTrainingButtonPress\',{\'identifier\':\'' + data.identifier + '\',\'id\':\'' + id + '\'})">' + data.buttonText + "</button></div>";
 
-            $('.recievedButton').effect('highlight', {}, 1500);
+            $('#holdButtons').effect('highlight', {}, 1500);
         }
 
 
