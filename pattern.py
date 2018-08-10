@@ -2,6 +2,7 @@ import socketio
 import util
 from functools import partial
 import pickle
+import traceback
 
 import button_menu
 
@@ -64,12 +65,29 @@ class HtmlUnity(Modality):
         assert False
 
     def chat(self, actor, message):
-        #todo: remove these
+        def stage_file(name):
+            return open(os.path.join(__file__, "static", "stages", + name +  ".p"))
+        
         if message[:4]=="load":
-            pass
+            try:
+                s = message.split()
+                f = pickle.load(stage_file(s[1]))
+                self.current_state = f
+                self.initial_state = f
+                self.prev_state = None
+                self.state_stack = []
+                self.emit("load", self.current_state, room=actor)
+            except:
+                print("ERROR LOADING STATE:")
+                traceback.print_exc()
 
-        if mesage=="save":
-            pickle.dump(self.current_state, open(os.path.join(__file__, "static", "stages", str(time.time()) + ".p")))
+        if message[:4]=="save":
+            try:
+                s = message.split()
+                pickle.dump(self.current_state, stage_file(s[1]))
+            except:
+                print("ERROR SAVING STATE:")
+                traceback.print_exc()
 
         if message=="refresh":
             self.emit("load", self.current_state, room=self.teacher)
