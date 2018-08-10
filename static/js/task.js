@@ -16,25 +16,15 @@ var pages = [
 ];
 
 var student_instruction_pages = [
-    "instructions/instruct-1-student.html", 
-   
+    "instructions/instruct-student-1.html", 
 ];
 
 var teacher_instruction_pages = [
-    "instructions/instruct-1-teacher.html", 
+    "instructions/instruct-teacher-1.html", 
     // "instructions/instruct-2.html",
     // "instructions/instruct-3.html",
     // "instructions/instruct-ready.html"
 ];
-
-var instruction_pages = [
-    "instructions/instruct-1-teacher.html", 
-    "instructions/instruct-1-student.html",
-    "instructions/instruct-2.html",
-    "instructions/instruct-3.html",
-    "instructions/instruct-ready.html"
-];
-
 
 
 psiTurk.preloadPages(pages);
@@ -85,6 +75,6 @@ socket.on('connect', function() {
 
 $(window).load( function(){
     socket.emit('join', {'id':  uniqueId, 'first': true});
-    //psiTurk.showPage('stage.html');
+    // psiTurk.showPage('stage.html');
     socket.on('instructions', function(arg) { do_instructions(arg) })
 });
