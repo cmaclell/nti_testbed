@@ -30,7 +30,7 @@ class HtmlUnity(Modality):
         
         self.unity_lock = {teacher : True, student : True}
         self.html_lock = {teacher : True, student : True}
-        self.training_buttons = {}
+        self.training_buttons = {teacher : [], student : []}
         self.read_instructions = {teacher : False, student : False}
         self.emissions = {teacher : {}, student : {}}
         self.finished = {teacher : False, student : False}

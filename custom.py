@@ -91,6 +91,7 @@ def on_ (sid, data):
     room = data['id']
     sio.enter_room(sid, room)
 
+    sio.emit("unlockChatBox", room=room)
 
     # user is reconnecting
     busy = False
@@ -208,11 +209,10 @@ def onTrainingButtonPress(sid, data):
     print("training button pressed: ", data['identifier'])
 
 def testing_user(uid):
-    if uid not in games:
-        new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
-        sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
-        games[uid] = new_game
-        sio.emit("instructions", games[uid].role_string(uid), room=uid)
+    new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
+    sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
+    games[uid] = new_game
+    sio.emit("instructions", games[uid].role_string(uid), room=uid)
         
 
 ### MODALITY LOGIC ### 
