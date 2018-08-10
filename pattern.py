@@ -68,6 +68,8 @@ class HtmlUnity(Modality):
         def stage_file(name):
             return os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "stages", str(name) +  ".p")
         
+
+
         if message[:4]=="load":
             try:
                 s = message.split()
@@ -110,7 +112,7 @@ class HtmlUnity(Modality):
 
         self.emit('sendTrainingMessage', 'YOU: '+ message, room=actor)
         self.emit('sendTrainingMessage', 
-            self.role_string(self.partner(actor)) + ': ' + message, 
+            self.role_string(actor) + ': ' + message, 
             room=self.partner(actor))
 
     def reconnect(self, actor):
@@ -365,12 +367,12 @@ class HtmlUnityDemonstrate(HtmlUnity):
         self.update_ui(self.teacher)
         self.update_ui(self.student)
 
-def HtmlUnityApprentice(HtmlUnity):
+class HtmlUnityApprentice(HtmlUnity):
     def __init__(self, sio, teacher, student):
         super(HtmlUnityApprentice, self).__init__(sio=sio, teacher=teacher, student=student)
         self.training_buttons[self.student] = button_menu.apprentice_student
-        self.unity_lock[self.teacher] = False
-        self.html_lock[self.teacher] = False
+        self.unity_lock[self.student] = False
+        self.html_lock[self.student] = False
         self.update_ui(self.teacher)
         self.update_ui(self.student)
         self.demonstrate=False
@@ -432,6 +434,7 @@ def HtmlUnityApprentice(HtmlUnity):
                 self.html_lock[self.student] = True
                 self.emit('sendTrainingMessage', "SYSTEM: The student is unsure of what to do next, take a single move to give them a hint.", room=self.teacher)
                 self.unity_lock[self.teacher] = False
+                self.demonstrate = True
                 self.training_buttons[self.student] = []
                 self.training_buttons[self.teacher] = []
 
