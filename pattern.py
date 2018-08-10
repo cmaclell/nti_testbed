@@ -1,6 +1,7 @@
 import socketio
 import util
 from functools import partial
+import pickle
 
 import button_menu
 
@@ -29,7 +30,7 @@ class HtmlUnity(Modality):
         self.unity_lock = {teacher : True, student : True}
         self.html_lock = {teacher : True, student : True}
         self.training_buttons = {}
-        
+        self.read_instructions = {teacher : False, student : False}
         self.emissions = {teacher : {}, student : {}}
         self.finished = {teacher : False, student : False}
         self.initial_state = None
@@ -64,6 +65,12 @@ class HtmlUnity(Modality):
 
     def chat(self, actor, message):
         #todo: remove these
+        if message[:4]=="load":
+            pass
+
+        if mesage=="save":
+            pickle.dump(self.current_state, open(os.path.join(__file__, "static", "stages", str(time.time()) + ".p")))
+
         if message=="refresh":
             self.emit("load", self.current_state, room=self.teacher)
             self.emit("load", self.current_state, room=self.student)

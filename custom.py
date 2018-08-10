@@ -91,13 +91,24 @@ def on_ (sid, data):
     room = data['id']
     sio.enter_room(sid, room)
 
+
     # user is reconnecting
     busy = False
     if room in list(connections.values()):
         if room in games:
             if not games[room].finished[room]:
+
+                # probably not the best way of doing this
+                if 'first' not in data:
+                    games[room].read_instructions[room] = True
+
+                #handle case of refreshing the page
+                if 'first' in data and games[room].read_instructions[room]:
+                    sio.emit("refresh", room=room)
+
                 games[room].reconnect(room)
                 busy = True
+                
                 
     # user is new
     if not busy:
@@ -189,8 +200,9 @@ def testing_user(uid):
     if uid not in games:
         new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
         sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
-        sio.emit("instructions", games[uid].role_string(uid), room=uid)
         games[uid] = new_game
+        sio.emit("instructions", games[uid].role_string(uid), room=uid)
+        
 
 ### MODALITY LOGIC ### 
 def register_user(uid):
