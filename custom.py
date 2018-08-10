@@ -189,7 +189,7 @@ def testing_user(uid):
     if uid not in games:
         new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
         sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
-        sio.emit("instructions", games[room].role_string(room), room=room)
+        sio.emit("instructions", games[uid].role_string(uid), room=uid)
         games[uid] = new_game
 
 ### MODALITY LOGIC ### 
