@@ -60,7 +60,7 @@
 				<div class="row">
 					<div class="col-xs-2">
 						<!-- REPLACE THE LOGO HERE WITH YOUR  UNIVERSITY, LAB, or COMPANY -->
-						<img id="adlogo" src="{{ server_location }}/static/images/img1.jpg" alt="Lab Logo" />
+						<img id="adlogo" src="{{ server_location }}/static/images/soartech.png" alt="SoarTech Logo" />
 					</div>
 					<div class="col-xs-10">
 
@@ -73,21 +73,39 @@
 
 							-->
 							{% if assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE" %}
+                                <h1>Call for participants</h1>
+                                <p>
+                                    This task is part of a research study being conducted
+                                    by Soar Technology, Inc. The purpose of the research is
+                                    to better understand how best to structure the
+                                    interactions between a human and an Artificial
+                                    Intelligence (AI) system when either the human or the
+                                    AI is trying to teach the other something new. 
+                                </p>
+                                <p>
+                                    The only requirements are that you are at
+                                    least 18 years old and are a fluent English
+                                    speaker.  The task will take approximately 30 minutes
+                                    and will pay $2.625 plus a potential $2 bonus.
+                                </p>
 
-							    <h1>assignm</h1>
-							    
-							    <p>
-								    This experiment involves teaching to or learning from an artificial intelligence.
-								    The task is simple and does not require any prior knowledge or skill other than
-								    how to read english and follow instructions. It should take approximately ??? 
-								    minutes to complete. 
+							    <div class="alert alert-warning">
+                                    <strong>All participants are required to
+                                        have a modern web browser</strong>,
+                                    such as Chrome, Safari, Edge, or Firefox.
+							    </div>
 
-								    You will be paid for any participation but will also receive a bonus if you complete 
-							    	the task, as well as additional potential bonus depending on how effectively
-									the teacher and student are able to collaborate to accomplish the task.
+                                <div class="alert alert-danger">
+                                    <strong>This task can only be completed once.</strong>
+                                    If you have already completed this task before the system will not
+                                    allow you to run again. If this looks familiar please return the
+                                    HIT so someone else can participate.
+                                </div>
 
-								</p>
-							    
+                                <p>
+                                    Otherwise, please click the "Accept HIT" button on the Amazon site
+                                    above to begin the task.
+                                </p>
 
 							{% else %}
 
@@ -103,21 +121,26 @@
 									openwindow() function below if you want you experiment
 									to work.
 								-->
-							    <h1>You're about to participate in an experiment!</h1>
+							    <h1>Thank you for accepting this HIT!</h1>
 							    <p>
-							    	By clicking the following URL link, you will be taken to the training experiment.
+                                    By clicking the following URL link, you
+                                    will be taken to the experiment, including
+                                    the informed consent agreement and complete
+                                    instructions.
 							    </p>
 							    <script>
 									function openwindow() {
-							    		popup = window.open('{{ server_location }}/exp?hitId={{ hitid }}&assignmentId={{ assignmentid }}&workerId={{ workerid }}','Popup','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no,width='+1024+',height='+768+'');
+                                        popup = window.open('{{ server_location }}/consent?hitId={{ hitid }}&assignmentId={{ assignmentid }}&workerId={{ workerid }}','Popup','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no,width='+1024+',height='+768+'');
+                                        popup.onunload = function() { location.reload(true) }
 							  		}
 							    </script>
 							    <div class="alert alert-warning">
-							    	<b>Warning</b>: Please disable pop-up blockers before continuing.
+                                    <strong>Warning</strong>: Please disable pop-up
+                                    blockers before continuing.
 							    </div>
 							    
 						    	<button type="button" class="btn btn-primary btn-lg" onClick="openwindow();">
-								  Yes, I want to participate in this experiment.
+                                    Begin Experiment
 								</button>
 
 
