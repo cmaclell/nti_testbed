@@ -178,9 +178,9 @@ class HtmlUnity(Modality):
 class HtmlUnityTest(HtmlUnity):
     def __init__(self, sio, user):
         super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user, num_teaching_tasks=1, num_testing_tasks=1)
-        self.init()
+        self.init(user)
 
-    def init(self):
+    def init(self, user):
         self.unity_lock = {user : False}
         self.html_lock = {user : False}
         self.training_buttons[user] = [{"identifier":"finish","buttonText":"finished"}, {"identifier":"undo","buttonText":"undo"}]
