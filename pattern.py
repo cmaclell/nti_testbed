@@ -117,7 +117,7 @@ class HtmlUnity(Modality):
         self.emit('load', self.current_state, room=actor)
         self.update_ui(actor)
         print('attempting to reconnect ' + self.role_string(actor))
-        self.emit('sendTrainingMessage', "SYSTEM: Reconnected as "+self.role_string(actor), room=actor)
+        self.emit('sendTrainingMessage', "SYSTEM: Reconnected as "+self.role_string(actor) + " in " + self.__class__.__name__, room=actor)
 
     def event(self, actor, event_type, event_data):
         print(str(self.event_dict[event_type]))
