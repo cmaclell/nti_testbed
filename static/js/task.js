@@ -85,6 +85,6 @@ socket.on('connect', function() {
 
 $(window).load( function(){
     socket.emit('join', {'id':  uniqueId, 'first': true});
-    psiTurk.showPage('stage.html');
-    //socket.on('instructions', function(arg) { do_instructions(arg) })
+    //psiTurk.showPage('stage.html');
+    socket.on('instructions', function(arg) { do_instructions(arg) })
 });

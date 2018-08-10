@@ -102,10 +102,10 @@ def on_ (sid, data):
     # user is new
     if not busy:
         if config.getboolean("Task Parameters", "single_player"):
-            testing_user(room)
-            sio.emit("instructions", games[room].role_string(room), room=room)
+            testing_user(room)         
         else:
             register_user(room)
+        sio.emit("instructions", games[room].role_string(room), room=room)
         
     connections[sid] = room
     
@@ -217,7 +217,7 @@ def register_user(uid):
         for user in [a, b]:
             games[user] = new_game
             sio.emit("sendTrainingMessage", "SYSTEM: You've been matched as "+ games[user].role_string(user), room=user)
-            sio.emit("instructions", games[user].role_string(user), room=user)
+            #sio.emit("instructions", games[user].role_string(user), room=user)
 
     else:
         sio.emit("sendTrainingMessage", "SYSTEM: Waiting for a partner.", room=uid)
