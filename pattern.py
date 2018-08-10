@@ -356,7 +356,7 @@ class HtmlUnityDemonstrate(HtmlUnity):
     
     def button(self, actor, button_id):
         if actor==self.teacher:
-            if button_id == "finish:request":
+            if button_id == "finish":
                 self.new_task()
         
             if button_id == "undo":
