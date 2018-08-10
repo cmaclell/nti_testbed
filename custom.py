@@ -85,7 +85,7 @@ def disconnect(sid):
 
 @sio.on('join')
 @exception
-def on_join(sid, data):
+def on_ (sid, data):
     # assign socket id to psiturk 
     print("join request from " + str(data))
     room = data['id']
