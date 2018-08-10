@@ -53,7 +53,7 @@ class HtmlUnity(Modality):
         
     def role_string(self, actor):
         if self.student == self.teacher:
-            return "single player"
+            return "sandbox"
         if actor==self.student:
             return "student"
         if actor==self.teacher:
