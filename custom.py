@@ -105,7 +105,7 @@ def on_ (sid, data):
             testing_user(room)         
         else:
             register_user(room)
-        sio.emit("instructions", games[room].role_string(room), room=room)
+        
         
     connections[sid] = room
     
@@ -189,6 +189,7 @@ def testing_user(uid):
     if uid not in games:
         new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
         sio.emit("sendTrainingMessage", "SYSTEM: Entering sandbox mode.", room=uid)
+        sio.emit("instructions", games[room].role_string(room), room=room)
         games[uid] = new_game
 
 ### MODALITY LOGIC ### 
@@ -217,7 +218,7 @@ def register_user(uid):
         for user in [a, b]:
             games[user] = new_game
             sio.emit("sendTrainingMessage", "SYSTEM: You've been matched as "+ games[user].role_string(user), room=user)
-            #sio.emit("instructions", games[user].role_string(user), room=user)
+            sio.emit("instructions", games[user].role_string(user), room=user)
 
     else:
         sio.emit("sendTrainingMessage", "SYSTEM: Waiting for a partner.", room=uid)
