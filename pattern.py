@@ -77,10 +77,14 @@ class HtmlUnity(Modality):
                 self.initial_state = f
                 self.prev_state = None
                 self.state_stack = []
-                self.emit("load", self.current_state, room=actor)
-                self.emit('sendTrainingMessage', "SYSTEM: stage loaded from: " + path, room=actor)
+                self.emit("load", self.current_state, room=self.teacher)
+                self.emit('sendTrainingMessage', "SYSTEM: stage loaded from: " + path, room=self.teacher)
+
+                if self.student!=self.teacher:
+                    self.emit("load", self.current_state, room=self.student)
+                    self.emit('sendTrainingMessage', "SYSTEM: stage loaded from: " + path, room=self.student)
             except:
-                print("ERROR LOADING STATE:")
+                print("error loading state:")
                 traceback.print_exc()
             return
 
@@ -89,9 +93,9 @@ class HtmlUnity(Modality):
                 s = message.split()
                 path = stage_file(s[1])
                 pickle.dump(self.current_state, open(path, 'wb+'))
-                self.emit('sendTrainingMessage', "SYSTEM: stage saved: " + path, room=actor)
+                self.emit('sendTrainingMessage', "SYSTEM: stage saved to: " + path, room=actor)
             except:
-                print("ERROR SAVING STATE:")
+                print("error saving state:")
                 traceback.print_exc()
             return
 
@@ -103,11 +107,6 @@ class HtmlUnity(Modality):
         if message=="new":
             self.new_task()
             return
-
-        if message=="asdf":
-            print('asdf')
-            return
-
 
         self.emit('sendTrainingMessage', 'YOU: '+ message, room=actor)
         self.emit('sendTrainingMessage', 
