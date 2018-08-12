@@ -1,0 +1,109 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+.hasOutline {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #BBBBBB;
+}
+
+#wholeLevel {
+    height: 100%;
+    display: -moz-box;
+    display: -webkit-flexbox;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+}
+
+#gameContainer {
+    width: 100%;
+    height 100%;
+}
+
+#sidePanel {
+    height: 100%;
+    display: -moz-box;
+    display: -webkit-flexbox;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    -moz-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+}
+
+#sidePanel h4 {
+    text-align: center;
+}
+
+#serverMessages {
+    flex: 2;
+    overflow: auto;
+    padding: 0;
+    font-size: 14px;
+    min-height: 100px;
+}
+
+#serverMessages p {
+    margin: 0px;
+    padding: 1.5px 3px 1.5px 3px;
+}
+
+#chatmessageDiv {
+    width: 100%;
+    display: -moz-box;
+    display: -webkit-flexbox;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+}
+
+#chatBox {
+    height: 25px;
+    font-size: 15px;
+}
+
+#chatMessageButton {
+    flex: 1; 
+    font-size: 15px;
+    height: 25px;
+}
+
+#holdButtons {
+    flex: 1;
+    min-height: 120px;
+    overflow: auto;
+    padding: 3px 3px;
+    display: -moz-box;
+    display: -webkit-flexbox;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    -moz-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+}
+
+.receivedButton {
+    height: 25px;
+    text-align: center;
+    font-size: 15px;
+}
