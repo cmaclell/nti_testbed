@@ -85,13 +85,11 @@ def disconnect(sid):
 
 @sio.on('join')
 @exception
-def on_ (sid, data):
-    # assign socket id to psiturk 
+def on_(sid, data):
+    # assign socket id to psiturk
     print("join request from " + str(data))
     room = data['id']
     sio.enter_room(sid, room)
-
-    sio.emit("unlockChatBox", room=room)
 
     # user is reconnecting
     busy = False
@@ -109,18 +107,19 @@ def on_ (sid, data):
 
                 games[room].reconnect(room)
                 busy = True
-                
-                
+            else:
+                print("Game finished, doing nothing.")
+
     # user is new
     if not busy:
         if config.getboolean("Task Parameters", "single_player"):
-            testing_user(room)         
+            testing_user(room)
         else:
             register_user(room)
-        
-        
+
+    sio.emit("unlockChatBox", room=room)
+
     connections[sid] = room
-    
 
 ### UNITY WEBSOCKET API ENDPOINTS ###
 @sio.on('action')
