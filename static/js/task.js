@@ -17,20 +17,24 @@ var pages = [
 ];
 
 var student_instruction_pages = [
-    "instructions/instruct-student-1.html", 
+    "instructions/student-process-and-role.html", 
+    "instructions/student-task-interface.html", 
+    "instructions/student-training-interface-apprentice.html", 
+    "instructions/ready.html", 
 ];
 
 var teacher_instruction_pages = [
-    "instructions/instruct-teacher-1.html", 
-    // "instructions/instruct-2.html",
-    // "instructions/instruct-3.html",
-    // "instructions/instruct-ready.html"
+    "instructions/teacher-process-and-role.html",
+    "instructions/teacher-task-interface.html",
+    "instructions/teacher-training-interface-apprentice.html",
+    "instructions/teacher-task.html",
+    "instructions/ready.html"
 ];
 
 
 psiTurk.preloadPages(pages);
-psiTurk.preloadPages(student_instruction_pages);
-psiTurk.preloadPages(teacher_instruction_pages);
+// psiTurk.preloadPages(student_instruction_pages);
+// psiTurk.preloadPages(teacher_instruction_pages);
 
 log = function(data) {
     console.log(data);
@@ -47,17 +51,17 @@ do_instructions = function(arg) {
 
     console.log("instruction request for role: " + arg);
     if (arg == "sandbox") {
-        //psiTurk.preloadPages(teacher_instruction_pages);
+        psiTurk.preloadPages(teacher_instruction_pages);
         psiTurk.doInstructions(teacher_instruction_pages, function() {psiTurk.showPage('stage.html');});
     }
 
     if (arg == "student") {
-        //psiTurk.preloadPages(student_instruction_pages);
+        psiTurk.preloadPages(student_instruction_pages);
         psiTurk.doInstructions(student_instruction_pages, function() {psiTurk.showPage('stage.html');});
     }
 
     if (arg == "teacher") {
-        //psiTurk.preloadPages(teacher_instruction_pages);
+        psiTurk.preloadPages(teacher_instruction_pages);
         psiTurk.doInstructions(teacher_instruction_pages, function() {psiTurk.showPage('stage.html');});
     }
 
