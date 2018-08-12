@@ -1,5 +1,6 @@
 <div id="wholeLevel">
-    <div id="gameContainer" class="hasOutline"></div>
+    <div id="gameContainer" class="hasOutline">
+    </div>
     <div id="sidePanel" class="hasOutline">
         <h4>Interaction Log</h4>
         <div id="serverMessages" class="hasOutline">
@@ -13,13 +14,6 @@
         </div>
     </div>
 </div>
-
-<script src="Build/UnityLoader.js"></script>
-<script>
-    var gameInstance = UnityLoader.instantiate("gameContainer", 
-        "Build/build 36 7-19-18 yellow buttons and trying to log less.json");
-    // this is build 36 with html interface 11
-</script>
 
 <script type="text/javascript" charset="utf-8">
     var socket = io.connect("ws://" + window.location.host); 
@@ -61,18 +55,19 @@
                 $(button).attr('title', data.descriptionText);
             }
             $(button).addClass('receivedButton');
-
-            $(button).on('click', function(){
-                socket.emit('onTrainingButtonPress', {
-                    'identifier': '' + data.identifier,
-                    'id': '' + id
-                });
-            });
+            $(button).attr('button-id', data.identifier);
 
             $('#holdButtons').append(button);
             $(button).tooltip();
             $(button).effect('highlight', {}, 1500);
         }
+
+        $('.receivedButton').on('click', function(ev){
+            socket.emit('onTrainingButtonPress', {
+                'identifier': '' + $(ev.currentTarget).attr('button-id'),
+                'id': '' + id
+            });
+        });
 
         lastButtonList = buttonList;
     });
@@ -182,6 +177,16 @@
             }
         });
         lockChatBox();
+
+        // Load the unity game in an Iframe, so it can be removed easily.
+        var idx = window.location.href.indexOf('?');
+        var src = '/unity.html' + window.location.href.substring(idx,
+            window.location.href.length);
+        console.log("loading SRC in iframe");
+        console.log(src);
+        var iframe = $("<iframe scrolling=\"no\" seamless=\"seamless\"></iframe>")
+            .attr({"id": 'unityFrame', "src": src });
+        $('#gameContainer').append(iframe);
     });
 
 </script>

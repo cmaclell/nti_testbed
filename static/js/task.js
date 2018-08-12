@@ -101,7 +101,8 @@ socket.on('complete_hit', function(arg) {
 		});
 	};
 
-    $('body').html('');
+    $('#unityFrame').remove();
+
     psiTurk.showPage('postquestionnaire.html');
     // psiTurk.completeHIT()
     $("#next").click(function () {

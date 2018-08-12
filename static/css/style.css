@@ -40,7 +40,7 @@ strong {
 #container-not-an-ad, #container-error, #container-exp, #container-consent, #container-instructions, #container-questionnaire {
     position: absolute;
     top: 0px; /* Header Height */
-    /* bottom: 0px; */ /* Footer Height */
+    bottom: 0px; /* Footer Height */
     left: 0px;
     right: 0px;
     padding: 100px;
@@ -49,8 +49,8 @@ strong {
     background: white;
 }
 
-#container-not-an-ad {
-    bottom: 0px;
+#container-consent {
+    bottom: auto;
 }
 
 #container-dashboard {
