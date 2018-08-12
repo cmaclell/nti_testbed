@@ -4,7 +4,9 @@
         <h4>Interaction Log</h4>
         <div id="serverMessages" class="hasOutline">
         </div>
-        <div id="chatmessageDiv">
+        <div id="chatmessageDiv" class="hasOutline">
+            <input type="text" id="chatBox" autocomplete="off"/>
+            <button id="chatMessageButton">Send</button>
         </div>
         <h4>Training Actions</h4>
         <div id="holdButtons" class="hasOutline">
@@ -14,127 +16,57 @@
 
 <script src="Build/UnityLoader.js"></script>
 <script>
-    var gameInstance = UnityLoader.instantiate("gameContainer", "Build/build 36 7-19-18 yellow buttons and trying to log less.json");
+    var gameInstance = UnityLoader.instantiate("gameContainer", 
+        "Build/build 36 7-19-18 yellow buttons and trying to log less.json");
     // this is build 36 with html interface 11
 </script>
 
-<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
-
 <script type="text/javascript" charset="utf-8">
-    console.log("ws://" + window.location.host);
-    var socket = io.connect("ws://" + window.location.host); //'ws://localhost:5000');
+    var socket = io.connect("ws://" + window.location.host); 
 
     //var trainer;
     var id;
     var buttonIdCounter = 0;
 
-    //document.getElementById('testDisplay1').innerHTML = "changed as a test for javascript";
     socket.on('connect', function() {
-        //socket.emit('message', {data: 'I\'m connected!'});
-        //document.getElementById('testDisplay1').innerHTML = "changed as a test for socket connect";
-        //socket.emit('htmlMessage', "egg salad 4");
-
-
-
         var currentUrlString = window.location.href;
-        console.log(currentUrlString);
-        //http://localhost:5000/exp?hitId=debugV0M43W&assignmentId=debugEXVKP1&workerId=debug8GBALW&mode=debug
         var indexOfStartOfWorkerId = currentUrlString.indexOf("workerId");
         var indexOfAmpersandAtEndOfWorkerId = currentUrlString.indexOf("&", indexOfStartOfWorkerId);
-
         var workerIdString = currentUrlString.substring(indexOfStartOfWorkerId + 9, indexOfAmpersandAtEndOfWorkerId);
-
         var indexOfStartOfAssignmentId = currentUrlString.indexOf("assignmentId");
         var indexOfAmpersandAtEndOfAssignmentId = currentUrlString.indexOf("&", indexOfStartOfAssignmentId);
-
         var assignmentIdString = currentUrlString.substring(indexOfStartOfAssignmentId + 13, indexOfAmpersandAtEndOfAssignmentId);
-
         var finalIdString = workerIdString + ":" + assignmentIdString
-
-        console.log(finalIdString);
 
         socket.emit('join', {
             'id': finalIdString
         });
 
         id = finalIdString;
+
     });
-    /*socket.on('initializeInterface', function(data) {
-      console.log(data);
-            actor = data.actor;
-            id = data.id;
-            document.getElementById('actorTitle').innerHTML = actor.charAt(0).toUpperCase() + actor.slice(1) + " Interface:";
-    });*/
-
-    function requestButtons() {
-
-        socket.emit("requestTestTrainingButtons");
-    }
-
-    function clearServerOutput() {
-
-        socket.emit("clearAll");
-    }
-
-    function requestLock() {
-
-        socket.emit("requestLock");
-    }
-
-    function requestUnlock() {
-
-        socket.emit("requestUnlock");
-    }
-
-    function requestLockChatBox() {
-
-        socket.emit("requestLockChatBox");
-    }
-
-    function requestUnlockChatBox() {
-
-        socket.emit("requestUnlockChatBox");
-    }
-
-    function requestResetUnity() {
-
-        socket.emit("requestResetUnity");
-    }
-
-    function requestUnityAction() {
-        socket.emit("requestActionBroadcast");
-    }
-
-    /*socket.on('getTrainingButton', function(data) {
-      //e.g. data = {"identifier"="890",buttonText="Request Feedback"}
-            document.getElementById('holdButtons').innerHTML += '<div class="recievedButtonContainer"><button class="recievedButton" onclick="socket.emit(\'onTrainingButtonPress\',{\'identifier\':\'' + data.identifier + '\',\'id\':\'' + id + '\',\'actor\':\'' + actor + '\'})">' + data.buttonText + "</button></div>"
-            
-    });*/
 
     socket.on('getTrainingButtons', function(buttonList) {
-        document.getElementById('holdButtons').innerHTML = "";
+        $('#holdButtons').html("");
         for (var i = 0; i < buttonList.length; i++) {
-
-            //e.g. data = {"identifier"="890",buttonText="Request Feedback"}
-
             var data = buttonList[i];
+            var button = $("<button>" + data.buttonText + "</button>");
+            $(button).addClass('receivedButton');
 
-            //document.getElementById('holdButtons').innerHTML += '<div class="recievedButtonContainer"><button class="recievedButton" onclick="socket.emit(\'onTrainingButtonPress\',{\'identifier\':\'' + data.identifier + '\',\'id\':\'' + id + '\',\'actor\':\'' + actor + '\'})">' + data.buttonText + "</button></div>"
+            $(button).on('click', function(){
+                socket.emit('onTrainingButtonPress', {
+                    'identifier': '' + data.identifier,
+                    'id': '' + id
+                });
+            });
 
-            document.getElementById('holdButtons').innerHTML += '<button class="receivedButton" onclick="socket.emit(\'onTrainingButtonPress\',{\'identifier\':\'' + data.identifier + '\',\'id\':\'' + id + '\'})">' + data.buttonText + "</button>";
-
+            $('#holdButtons').append(button);
             $('#holdButtons').effect('highlight', {}, 1500);
         }
-
-
-
     });
+
     socket.on('sendTrainingMessage', function(message) {
-        console.log(message);
-        // document.getElementById('serverMessages').innerHTML += "<p>" + message + "</p>";
-
         var m = $('<p></p>').text(message);
-
         $('#serverMessages').append(m);
         $("#serverMessages").scrollTop($("#serverMessages")[0].scrollHeight);
         $(m).effect("highlight", {}, 1500);
@@ -145,60 +77,84 @@
     });
 
     socket.on('clearTrainingMessages', function(message) {
-        document.getElementById('serverMessages').innerHTML = "<p> The Log: </p>";
-
+        $('#serverMessages').html("");
     });
 
     //OBSOLETE FUNCTION: clearTrainingButtons
     socket.on('clearTrainingButtons', function(message) {
-        document.getElementById('holdButtons').innerHTML = "";
-
+        $('#holdButtons').html('');
     });
 
-
-    socket.on('lockButtons', function() {
-        var buttonList = document.getElementsByClassName("receivedButton");
-        for (var i = 0; i < buttonList.length; i++) {
-            buttonList[i].setAttribute('disabled', 'disabled')
-        }
-
-    });
-    socket.on('unlockButtons', function() {
-        var buttonList = document.getElementsByClassName("receivedButton");
-        for (var i = 0; i < buttonList.length; i++) {
-            buttonList[i].removeAttribute("disabled");
-        }
-
-
-    });
-
+    socket.on('lockButtons', lockButtons);
+    socket.on('unlockButtons', unlockButtons);
     socket.on('lockChatBox', lockChatBox);
     socket.on('unlockChatBox', unlockChatBox);
 
+    function lockButtons() {
+        $('.receivedButton').attr('disabled', 'disabled');
+    }
+
+    function unlockButtons() {
+        $('.receivedButton').removeAttr('disabled');
+    }
+
     function unlockChatBox() {
-        document.getElementById('chatmessageDiv').innerHTML = `<input type="text" id="chatBox"> <button id="chatMessageButton" onclick="sendChatMessage()">Send</button>`
-        document.getElementById("chatmessageDiv").classList.add('hasOutline');
-        document.getElementById("chatmessageDiv").style.paddingBottom = "0.5px";
-        $('#chatBox').keypress(function(e){
-            if (e.which == 13) {
-                sendChatMessage();
-            }
-        });
+        $('#chatmessageDiv').show();
     }
 
     function lockChatBox() {
-        document.getElementById('chatmessageDiv').innerHTML = ""
-        document.getElementById("chatmessageDiv").classList.remove('hasOutline');
-        document.getElementById("chatmessageDiv").style.paddingBottom = "0";
+        $('#chatmessageDiv').hide();
     }
 
     function sendChatMessage() {
         socket.emit("getChatMessage", {
             'message':
-                // document.getElementById('chatBox').value,'actor': actor,'id': id});
                 document.getElementById('chatBox').value,
             'id': id
         });
         document.getElementById('chatBox').value = "";
     }
+
+    function requestButtons() {
+        socket.emit("requestTestTrainingButtons");
+    }
+
+    function clearServerOutput() {
+        socket.emit("clearAll");
+    }
+
+    function requestLock() {
+        socket.emit("requestLock");
+    }
+
+    function requestUnlock() {
+        socket.emit("requestUnlock");
+    }
+
+    function requestLockChatBox() {
+        socket.emit("requestLockChatBox");
+    }
+
+    function requestUnlockChatBox() {
+        socket.emit("requestUnlockChatBox");
+    }
+
+    function requestResetUnity() {
+        socket.emit("requestResetUnity");
+    }
+
+    function requestUnityAction() {
+        socket.emit("requestActionBroadcast");
+    }
+
+    $(function(){
+        $('#chatMessageButton').on('click', sendChatMessage);
+        $('#chatBox').keypress(function(e){
+            if (e.which == 13) {
+                sendChatMessage();
+            }
+        });
+        lockChatBox();
+    });
+
 </script>
