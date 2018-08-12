@@ -27,6 +27,7 @@
     //var trainer;
     var id;
     var buttonIdCounter = 0;
+    var lastButtonList = null;
 
     socket.on('connect', function() {
         var currentUrlString = window.location.href;
@@ -47,10 +48,18 @@
     });
 
     socket.on('getTrainingButtons', function(buttonList) {
+        if (lastButtonList !== null && 
+             buttonListsEqual(lastButtonList, buttonList)){
+            return;
+        }
+
         $('#holdButtons').html("");
         for (var i = 0; i < buttonList.length; i++) {
             var data = buttonList[i];
             var button = $("<button>" + data.buttonText + "</button>");
+            if (data.descriptionText !== undefined){
+                $(button).attr('title', data.descriptionText);
+            }
             $(button).addClass('receivedButton');
 
             $(button).on('click', function(){
@@ -61,8 +70,11 @@
             });
 
             $('#holdButtons').append(button);
-            $('#holdButtons').effect('highlight', {}, 1500);
+            $(button).tooltip();
+            $(button).effect('highlight', {}, 1500);
         }
+
+        lastButtonList = buttonList;
     });
 
     socket.on('sendTrainingMessage', function(message) {
@@ -145,6 +157,21 @@
 
     function requestUnityAction() {
         socket.emit("requestActionBroadcast");
+    }
+
+    function buttonListsEqual(arr1, arr2) {
+        if(arr1.length !== arr2.length){
+            return false;
+        }
+        for(var i = arr1.length; i--;) {
+            if(arr1[i].identifier !== arr2[i].identifier ||
+               arr1[i].buttonText !== arr2[i].buttonText ||
+               arr1[i].descriptionText !== arr2[i].descriptionText){
+                return false;
+            }
+        }
+
+        return true;
     }
 
     $(function(){
