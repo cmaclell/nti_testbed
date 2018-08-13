@@ -76,6 +76,9 @@ socket.on('complete_hit', function(arg) {
 
 		psiTurk.recordTrialData({'phase':'postquestionnaire', 'status':'submit'});
 
+		$('input').each( function(i, val) {
+			psiTurk.recordUnstructuredData(this.id, this.value);		
+		});
 		$('textarea').each( function(i, val) {
 			psiTurk.recordUnstructuredData(this.id, this.value);
 		});

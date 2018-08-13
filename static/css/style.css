@@ -1,46 +1,56 @@
 body {
-    padding:0px;
+    padding: 0px;
     margin: 0px;
     background-color: white;
     color: black;
-    font-weight: 300; 
+    font-weight: 300;
     font-size: 13pt;
 }
 
 
 /* text styling */
+
 strong {
-  font-weight: 600;         
+    font-weight: 600;
 }
 
 .warm {
-  color: steelblue;
-  text-align: justify;
+    color: steelblue;
+    text-align: justify;
 }
 
 .cool {
-  color: #ccccff;
+    color: #ccccff;
 }
 
 .badcode {
-  display: none;
+    display: none;
 }
 
 .numberbox {
-  width: 220px;
-  height: 150px;
+    width: 220px;
+    height: 150px;
 }
 
 .bignumber {
-  font-size: 56px;
-  text-align: center;
-  width: 100%;
+    font-size: 56px;
+    text-align: center;
+    width: 100%;
 }
+
 /* these are all the same for now, but easy to modify individually */
-#container-not-an-ad, #container-error, #container-exp, #container-consent, #container-instructions, #container-questionnaire {
+
+#container-not-an-ad,
+#container-error,
+#container-exp,
+#container-consent,
+#container-instructions,
+#container-questionnaire {
     position: absolute;
-    top: 0px; /* Header Height */
-    bottom: 0px; /* Footer Height */
+    top: 0px;
+    /* Header Height */
+    bottom: 0px;
+    /* Footer Height */
     left: 0px;
     right: 0px;
     padding: 100px;
@@ -49,15 +59,19 @@ strong {
     background: white;
 }
 
-#container-consent, #container-instructions, #containuer-questionnaire {
+#container-consent,
+#container-instructions,
+#containuer-questionnaire {
     min-height: 768px;
     bottom: auto;
 }
 
 #container-dashboard {
     position: absolute;
-    top: 0px; /* Header Height */
-    bottom: 0px; /* Footer Height */
+    top: 0px;
+    /* Header Height */
+    bottom: 0px;
+    /* Footer Height */
     left: 0px;
     right: 0px;
     padding: 100px;
@@ -66,6 +80,7 @@ strong {
 }
 
 /* ad.html  - the ad that people view first */
+
 #adlogo {
     float: right;
     width: 150px;
@@ -74,18 +89,19 @@ strong {
 }
 
 /* consent.html - the consent form */
+
 #consent {
-  margin: 0 auto;
-  margin-top: 0;
-  margin-bottom: 30px;
-  width: 800px;
-  font-size: 100%;
+    margin: 0 auto;
+    margin-top: 0;
+    margin-bottom: 30px;
+    width: 800px;
+    font-size: 100%;
 }
 
 .legal {
-  text-align: justify;
-  font-size: 11pt;
-  line-height: 1.1em;
+    text-align: justify;
+    font-size: 11pt;
+    line-height: 1.1em;
 }
 
 @media print {
@@ -102,25 +118,28 @@ strong {
         font-size: 9pt !important;
     }
 
-    #consent h1{
+    #consent h1 {
         padding: 0;
         margin: 5px 0 0 0;
         font-size: 10pt !important;
     }
 
-    #consent h2, #consent h4, #consent button {
+    #consent h2,
+    #consent h4,
+    #consent button {
         padding: 0;
         margin: 5px 0 0 0;
         font-size: 9pt !important;
     }
 
-    #consent p, #consent ul li {
+    #consent p,
+    #consent ul li {
         padding: 0;
         margin: 5px 0 0 0;
         font-size: 8pt !important;
     }
 
-    #container-consent{
+    #container-consent {
         padding: 0;
         margin: 0;
     }
@@ -134,21 +153,57 @@ strong {
 }
 
 #trial {
-  margin: 0 auto;
-  width: 800px;
-  text-align: center;
+    margin: 0 auto;
+    width: 800px;
+    text-align: center;
 }
 
 #query {
-  color: darkgray;
+    color: darkgray;
 }
 
 .question {
-  margin-bottom: 30px;
+    margin: 15px 10px;
 }
 
 /* errors */
+
 #error img {
-  padding-right: 10px;
-  padding-top: 15px;
+    padding-right: 10px;
+    padding-top: 15px;
+}
+
+/* Questionnaire */
+
+.likert {
+    list-style: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: -moz-box;
+    display: -webkit-flexbox;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+
+}
+
+.likert li {
+   flex: 1; 
+   margin-top: 5px;
+}
+
+.question div textarea{
+    width: 80%;
+}
+
+.likert li label {
+    font-weight: 200;
+    font-size: 14px;
+    width: 100%;
 }
