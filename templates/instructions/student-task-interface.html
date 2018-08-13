@@ -1,17 +1,43 @@
 <div id="container-instructions">
 
-	<h1>Instructions</h1>
+	<h1>Task Interface</h1>
 	<hr>
 	<div class="instructions well">
-	    <p>
-		    This is the first page of instructions.
-	    </p>
-	    <p>
-	    	Be helpful, clear.
-        </p>
+        <h2>Overview</h2>
         <p>
-        	Use images and concrete examples.
+            For this experiment, you will be trying to learn to perform a
+            particular task given the AI system's intruction. You will be
+            learning to perform this task using the interface shown below.
         </p>
+
+        <h2>Example of Interface</h2>
+	    <p>
+            Here is an example of what the task interface will look like with
+            additional annotations describing the interface actions that
+            are allowed within this interface.
+        </p>
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            width: 80%;"
+            src="/static/images/student-task-interface.png"
+            alt="Task interface example">
+        </p>
+        
+        <h2>Allowed Actions</h2>
+        <p>
+            When you go through the training, you will learn more about what
+            you are supposed to do in this interface, but for now you just need
+            to know that the following actions are allowed. 
+            <ul>
+                <li>
+                    <strong>Clicking on the upper part of the screen</strong>
+                </li>
+                <li>
+                    <strong>Pressing the buttons on the bottom when they are
+                        active</strong>
+                </li>
+            </ul>
+	    </p>
 
 	    <script type="text/javascript">
 	    //console.log(psiTurk.getInstructionIndicator())
@@ -24,6 +50,9 @@
         <div class="row">
             <div class="col-xs-2">
             	<!-- no previous button on first screen -->
+                 <button type="button" id="prev" value="prev" class="btn btn-primary btn-lg previous">
+                <span class="glyphicon glyphicon-arrow-left"></span> Previous
+                </button>
             </div>
             <div class="col-xs-8">
             </div>

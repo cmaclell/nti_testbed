@@ -50,6 +50,7 @@ strong {
 }
 
 #container-consent, #container-instructions, #containuer-questionnaire {
+    min-height: 768px;
     bottom: auto;
 }
 

@@ -3,6 +3,7 @@
 	<h1>Task Interface</h1>
 	<hr>
 	<div class="instructions well">
+        <h2>Example</h2>
 	    <p>
             Here is an example of someone using the task interface you will be
             guiding the AI student to use.
@@ -13,6 +14,8 @@
             src="/static/images/teacher-task-interface-demo.gif"
             alt="Task interface demo">
         </p>
+        
+        <h2>Possible Actions</h2>
         <p>
             The interface is for controlling a simple simulated robot that can
             sense and act in its environment. There are five possible actions
@@ -48,7 +51,9 @@
             </ul>
 	    </p>
         
-        <p>Finally, the robot is unable to move through walls. If it encounters
+        <h2>Avoiding Obstacles</h2>
+        <p>Finally, the robot is unable to move through obstacles. If it 
+        encounters
         an obstacle it will do its best to continue following its waypoints,
         but if it gets stuck then it will stop moving and reset its waypoints.
         For more efficient movement, try not to set waypoints that cause the
