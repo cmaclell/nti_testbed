@@ -49,7 +49,7 @@ strong {
     background: white;
 }
 
-#container-consent {
+#container-consent, #container-instructions, #containuer-questionnaire {
     bottom: auto;
 }
 

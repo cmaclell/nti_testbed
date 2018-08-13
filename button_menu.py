@@ -1,11 +1,12 @@
 test = [{"identifier":"finish", "buttonText":
          "Mark Task Complete", 
-         "descriptionText": "This marks the task complete and moves you on to"
+         "descriptionText": "This marks the task complete and moves on to"
          " the next task. Be sure you are finished before clicking as you will"
          " not be able to go back."}, 
-    	{"identifier":"undo",
-         "buttonText":"Undo Last Action",
-         "descriptionText": "This will undo the last action you took."}]
+    	# {"identifier":"undo",
+        #  "buttonText":"Undo Last Action",
+        #  "descriptionText": "This will undo the last action you took."}
+       ]
 
 reward_student = [{"identifier":"finish:request","buttonText":
                    "Verify Task is Done", 
@@ -34,10 +35,11 @@ apprentice_student = [{"identifier":"help:request","buttonText":
                        " completed and if the teacher approves will let you"
                        " move on to the next task. Press this when you think"
                        " you are done."},
-                      {"identifier":"undo",
-                       "buttonText":"Undo Last Action",
-                       "descriptionText": "This will undo the last action you"
-                       " took."}]
+                      # {"identifier":"undo",
+                      #  "buttonText":"Undo Last Action",
+                      #  "descriptionText": "This will undo the last action you"
+                      #  " took."}
+                     ]
                     	
 apprentice_teacher = reward_teacher
 

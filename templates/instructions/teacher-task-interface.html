@@ -1,16 +1,58 @@
 <div id="container-instructions">
 
-	<h1>Instructions</h1>
+	<h1>Task Interface</h1>
 	<hr>
 	<div class="instructions well">
 	    <p>
-		    This is the first page of instructions.
-	    </p>
-	    <p>
-	    	Be helpful, clear.
+            Here is an example of someone using the task interface you will be
+            guiding the AI student to use.
+        </p>
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            width: 80%;"
+            src="/static/images/teacher-task-interface-demo.gif"
+            alt="Task interface demo">
         </p>
         <p>
-        	Use images and concrete examples.
+            The interface is for controlling a simple simulated robot that can
+            sense and act in its environment. There are five possible actions
+            in this interface:
+            <ul>
+                <li>
+                    <strong>Clicking on the screen</strong> sets waypoints for
+                    the robot.
+                </li>
+                <li>
+                    <strong>Pressing the "Action 1" button</strong> makes the
+                    robot follow the active waypoints. As the robot moves it
+                    actively senses its environment and updates its model, as
+                    reflected by the white dots, which correspond to locations
+                    where its sensors detected a wall or obstacle, and the
+                    colored shapes, which correspond to objects in the robot
+                    has detected in the environment.
+                </li>
+                <li>
+                    <strong>Pressing the "Action 2" button</strong> deletes all
+                    the active waypoints.
+                </li>
+                <li>
+                    <strong>Pressing the "Action 3" button</strong> while over
+                    an object (the colored shapes) makes the robot pickup the
+                    object and put it in its inventory. Only one object can be
+                    held at a time.
+                </li>
+                <li>
+                    <strong>Pressing the "Action 4" button</strong> will drop
+                    an object that is currently in the robot's inventory.
+                </li>
+            </ul>
+	    </p>
+        
+        <p>Finally, the robot is unable to move through walls. If it encounters
+        an obstacle it will do its best to continue following its waypoints,
+        but if it gets stuck then it will stop moving and reset its waypoints.
+        For more efficient movement, try not to set waypoints that cause the
+        robots path to encounter any obstacles
         </p>
 
 	    <script type="text/javascript">
@@ -24,6 +66,9 @@
         <div class="row">
             <div class="col-xs-2">
             	<!-- no previous button on first screen -->
+                 <button type="button" id="prev" value="prev" class="btn btn-primary btn-lg previous">
+                <span class="glyphicon glyphicon-arrow-left"></span> Previous
+                </button>
             </div>
             <div class="col-xs-8">
             </div>

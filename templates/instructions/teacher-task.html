@@ -1,16 +1,31 @@
 <div id="container-instructions">
 
-	<h1>Instructions</h1>
+	<h1>Target Task to Teach</h1>
 	<hr>
 	<div class="instructions well">
 	    <p>
-		    This is the first page of instructions.
+            Now that you have seen the task and training interfaces, the page
+            describes the task you are trying to teach the AI student.
 	    </p>
+
 	    <p>
-	    	Be helpful, clear.
+            The target task is to <strong>move the green cross to the blue
+            star</strong>. Below is an example of someone correctly performing
+            the task. 
         </p>
+
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            width: 80%;"
+            src="/static/images/teacher-task-correct-example.gif"
+            alt="Correct task example">
+        </p>
+
         <p>
-        	Use images and concrete examples.
+        When evaluating the AI student to determine your bonus, the
+        student's score will be determined by the distance between these two
+        objects when they are done with the task. A perfect score will be
+        achieved when these two objects are overlapping.
         </p>
 
 	    <script type="text/javascript">
@@ -24,6 +39,9 @@
         <div class="row">
             <div class="col-xs-2">
             	<!-- no previous button on first screen -->
+                 <button type="button" id="prev" value="prev" class="btn btn-primary btn-lg previous">
+                <span class="glyphicon glyphicon-arrow-left"></span> Previous
+                </button>
             </div>
             <div class="col-xs-8">
             </div>
