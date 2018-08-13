@@ -196,6 +196,7 @@ strong {
 .likert li {
    flex: 1; 
    margin-top: 5px;
+   text-align: center;
 }
 
 .question div textarea{
