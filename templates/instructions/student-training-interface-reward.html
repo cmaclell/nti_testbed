@@ -1,17 +1,67 @@
 <div id="container-instructions">
 
-	<h1>Instructions</h1>
+	<h1>Training Interface</h1>
 	<hr>
 	<div class="instructions well">
+        <h2>Overview</h2>
 	    <p>
-		    This is the first page of instructions.
+            In addition to the task interface, you will also have a training
+            interface on the right side of the screen that you can use to
+            receive task instruction from the teacher.
+        </p>
+
+        <h2>Example of interface</h2>
+        <p>
+          The image below shows what this interface will look like.
+        </p>
+
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            width: 25%;"
+            src="/static/images/student-training-interface-apprentice.png"
+            alt="training interface">
+        </p>
+
+        <h2>Allowed actions</h2>
+        <p>
+            For this experiment, you can take three kinds of actions to get
+            instruction from the teacher: <strong>take action in the task
+                interface</strong> and <strong>verify that the task is complete
+            </strong>. 
 	    </p>
+
+        <h2>Taking an action in the task interface</h2>
 	    <p>
-	    	Be helpful, clear.
+            You can take an action directly in the task interface and
+            the teacher will provide you with correctness feedback. If they
+            approve of the action you took, then you will be allowed to
+            continue. However, if they disapprove of the action, then you will
+            have to try a different action.
         </p>
         <p>
-        	Use images and concrete examples.
+            When you are waiting for feedback from the teacher, the task
+            interface will lock (denoted by a lock symbol in the bottom right of
+            the task interface). When the teacher is finished giving you feedback
+            the interface will unlock again.
         </p>
+
+        <h2>Verify task is complete</h2>
+        <p>
+            When you think you have completed the task, press the "verify task
+            is done" button in the training actions menu in the bottom right.
+            If the task has been completed and the teacher approves of this
+            action, then you will be allowed to proceed to the next action.
+
+            However, if the task is not done and the teacher disapproves, then
+            you will have to continue working on the task. 
+        </p>
+
+        <h2>Interaction Log</h2>
+        <p>Throughout the training process all interactions with the AI student
+            will be recorded in the training interaction log shown in the
+            images above.
+        </p>
+
 
 	    <script type="text/javascript">
 	    //console.log(psiTurk.getInstructionIndicator())
@@ -24,6 +74,9 @@
         <div class="row">
             <div class="col-xs-2">
             	<!-- no previous button on first screen -->
+                 <button type="button" id="prev" value="prev" class="btn btn-primary btn-lg previous">
+                <span class="glyphicon glyphicon-arrow-left"></span> Previous
+                </button>
             </div>
             <div class="col-xs-8">
             </div>

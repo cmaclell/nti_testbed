@@ -1,16 +1,69 @@
 <div id="container-instructions">
 
-	<h1>Instructions</h1>
+	<h1>Training Interface</h1>
 	<hr>
 	<div class="instructions well">
+        <h2>Overview</h2>
 	    <p>
-		    This is the first page of instructions.
-	    </p>
-	    <p>
-	    	Be helpful, clear.
+            In addition to the task interface, you will also have a training
+            interface on the right side of the screen, shown in the images
+            below.
         </p>
+
         <p>
-        	Use images and concrete examples.
+            Within this interface, you will provide students with three kinds
+            of instruction: <strong>demonstrations</strong>, <strong>action
+            approval</strong>, and <strong>task completion approval.</strong>
+	    </p>
+
+        <h2>Demonstrations</h2>
+	    <p>
+            The image below shows an example of a student requesting a
+            demonstration. When this happens, you can take an action in the
+            interface to show them the correct next step.
+        </p>
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            width: 25%;"
+            src="/static/images/demonstration-request.png"
+            alt="demonstration request example">
+        </p>
+
+        <h2>Action Approval</h2>
+        <p>
+            The image below shows an example of a student requesting approval
+            for an action they have taken. When this happens you click one of
+            the buttons in the bottom right to either approve or disapprove of
+            their action. When you approve, the student will be allowed to
+            continue with the task. However, when you disapprove they will have
+            to try a diferent action before they can proceed.
+        </p>
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            width: 25%;"
+            src="/static/images/approval-request.png"
+            alt="action approval example">
+        </p>
+
+        <h2>Task Completion Approval</h2>
+        <p>
+            The image below shows an example of a student requestion approval
+            for task completion. If the student has correctly completed the
+            task, then approving them will allow them to move on to the next
+            task scenario. However, if you disapprove then they will have to
+            continue working on the task before they can proceed.
+        </p>
+        <p style="width: 100%;">
+            <img style="display: block; margin-left: auto; margin-right: auto;
+            width: 25%;"
+            src="/static/images/completion-approval-request.png"
+            alt="completion approval example">
+        </p>
+
+        <h2>Interaction Log</h2>
+        <p>Throughout the training process all interactions with the AI student
+            will be recorded in the training interaction log shown in the
+            images above.
         </p>
 
 	    <script type="text/javascript">
@@ -24,6 +77,9 @@
         <div class="row">
             <div class="col-xs-2">
             	<!-- no previous button on first screen -->
+                 <button type="button" id="prev" value="prev" class="btn btn-primary btn-lg previous">
+                <span class="glyphicon glyphicon-arrow-left"></span> Previous
+                </button>
             </div>
             <div class="col-xs-8">
             </div>
