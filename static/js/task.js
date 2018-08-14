@@ -76,25 +76,26 @@ do_instructions = function(arg) {
 var socket = io.connect("ws://" + window.location.host); //'ws://localhost:5000');
 
 function validateForm() {
+    $('.question').removeClass('alert-warning')
+    // $('.likert:not(:has(:radio:checked))').parents('.question').addClass('alert-warning')
+
     var isValid = true;
-    $('input').each(function(){
-        if ($(this).val() === ''){
+
+    $('.likert').each(function(){
+        if ($(this).find('input:radio:checked').length === 0){
             isValid = false;
             $(this).parents('.question').addClass('alert-warning');
         }
-        else{
-            $(this).parents('.question').removeClass('alert-warning');
-        }
     });
+
     $('textarea').each(function(){
+        $(this).parents('.question').removeClass('alert-warning');
         if ($(this).val() === ''){
             isValid = false;
             $(this).parents('.question').addClass('alert-warning');
         }
-        else{
-            $(this).parents('.question').removeClass('alert-warning');
-        }
     });
+
     return isValid;
 
 }
@@ -110,11 +111,12 @@ function set_complete_hit_listener(role) {
                 'status': 'submit'
             });
 
-            $('input').each(function(i, val) {
-                psiTurk.recordUnstructuredData(this.id, this.value);
+            $('input:radio:checked').each(function(i, val) {
+                psiTurk.recordUnstructuredData(this.name, this.value);
             });
+
             $('textarea').each(function(i, val) {
-                psiTurk.recordUnstructuredData(this.id, this.value);
+                psiTurk.recordUnstructuredData(this.name, this.value);
             });
 
         };
@@ -170,7 +172,7 @@ function set_complete_hit_listener(role) {
                 });
             }
             else {
-                $('.instructions').append('<div id="all_fields_warning" class="alert alert-warning">All fields are required and some of the fields are incomplete. Please complete them before submitting.</div>');
+                $('#all_fields_warning').html('<div class="alert alert-warning">All fields are required and some of the fields are incomplete. Please complete them before submitting.</div>');
             }
         });
     });
