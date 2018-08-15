@@ -8,6 +8,7 @@
 
 // Initalize psiturk object
 var psiTurk = new PsiTurk(uniqueId, adServerLoc, mode);
+var socket;
 console.log("loading task.js for worker: " + uniqueId);
 
 var pages = [
@@ -83,7 +84,7 @@ do_instructions = function(role) {
 
 }
 
-var socket = io.connect("ws://" + window.location.host); //'ws://localhost:5000');
+
 
 function validateForm() {
     $('.question').removeClass('alert-warning')
@@ -194,29 +195,15 @@ function set_complete_hit_listener(role) {
     });
 }
 
-socket.on('connect', function() {
-    socket.emit('join', {
-        'id': uniqueId
-    });
-});
 
-<<<<<<< HEAD
 
-$(window).load( function(){
-    socket.emit('join', {'id':  uniqueId, 'first': true});
-    socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
-    
-    psiTurk.showPage('stage.html');
-    //socket.on('instructions', function(arg) { do_instructions(arg) })
-    
-    
-=======
+
 $(window).load(function() {
-    socket.emit('join', {
-        'id': uniqueId,
-        'first': true
-    });
+    
+    socket = io.connect("ws://" + window.location.host); 
+
     //psiTurk.showPage('stage.html');
+
     socket.on('instructions', function(role) {
         do_instructions(role)
     })
@@ -225,5 +212,14 @@ $(window).load(function() {
         do_instructions(role);
     })
 
->>>>>>> refs/remotes/origin/master
+    socket.emit('join', {
+        'id': uniqueId,
+        'first': true
+    });
+
+    socket.on('connect', function() {
+    socket.emit('join', {
+        'id': uniqueId
+    });
+});
 });
