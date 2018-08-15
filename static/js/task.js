@@ -46,28 +46,38 @@ completehit = function(arg) {
     psiTurk.completeHIT();
 }
 
-do_instructions = function(arg) {
-    console.log("instruction request for role: " + arg);
-    set_complete_hit_listener(arg);
+function start_task(){
+    psiTurk.showPage('stage.html');
+    psiTurk.recordTrialData({
+        'phase': 'task',
+        'status': 'start'
+    });
+}
 
-    if (arg == "sandbox") {
+do_instructions = function(role) {
+    console.log("instruction request for role: " + role);
+    set_complete_hit_listener(role);
+
+    psiTurk.recordUnstructuredData('role', role);
+
+    if (role == "sandbox") {
         psiTurk.preloadPages(teacher_instruction_pages);
         psiTurk.doInstructions(teacher_instruction_pages, function() {
-            psiTurk.showPage('stage.html');
+            start_task();
         });
     }
 
-    if (arg == "student") {
+    if (role == "student") {
         psiTurk.preloadPages(student_instruction_pages);
         psiTurk.doInstructions(student_instruction_pages, function() {
-            psiTurk.showPage('stage.html');
+            start_task();
         });
     }
 
-    if (arg == "teacher") {
+    if (role == "teacher") {
         psiTurk.preloadPages(teacher_instruction_pages);
         psiTurk.doInstructions(teacher_instruction_pages, function() {
-            psiTurk.showPage('stage.html');
+            start_task();
         });
     }
 
@@ -89,10 +99,11 @@ function validateForm() {
     });
 
     $('textarea').each(function(){
-        $(this).parents('.question').removeClass('alert-warning');
-        if ($(this).val() === ''){
-            isValid = false;
-            $(this).parents('.question').addClass('alert-warning');
+        if ($($(this).parents('.question')[0]).find('.required').length > 0){
+            if ($(this).val() === ''){
+                isValid = false;
+                $(this).parents('.question').addClass('alert-warning');
+            }
         }
     });
 
@@ -157,6 +168,11 @@ function set_complete_hit_listener(role) {
             psiTurk.showPage('teacher-postquestionnaire.html');
         }
 
+        psiTurk.recordTrialData({
+            'phase': 'postquestionnaire',
+            'status': 'start'
+        });
+
         // psiTurk.completeHIT()
         $("#next").click(function() {
             if (validateForm()){
@@ -190,12 +206,12 @@ $(window).load(function() {
         'first': true
     });
     //psiTurk.showPage('stage.html');
-    socket.on('instructions', function(arg) {
-        do_instructions(arg)
+    socket.on('instructions', function(role) {
+        do_instructions(role)
     })
     // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
-    socket.on('refresh', function(arg) {
-        do_instructions(arg);
+    socket.on('refresh', function(role) {
+        do_instructions(role);
     })
 
 });

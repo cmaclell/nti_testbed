@@ -9,7 +9,9 @@
 
         <h4>
             Please rate how much you <em>agree</em> or <em>disagree</em> with
-            the following statements and provide additional comments where appropriate:
+            the following statements and provide additional comments where
+            appropriate (fields with a <span class="required">*</span> are
+            required):
         </h4>
 
         <form id="postquiz" action="debrief" method="post">
@@ -18,7 +20,7 @@
             <div class="row question">
                 <div>
                     Please provide a 1-2 sentence description of the task you
-                    taught to the AI student.
+                    taught to the AI student.<span class='required'>*</span>
                 </div>
                 <div>
                     <textarea rows="3" name="description_of_target_task"></textarea>
@@ -29,7 +31,7 @@
             <!-- beginning of a question -->
             <div class="row question">
                 <div>
-                    The AI student learned to correctly perform the task by the end of training.
+                    The AI student learned to correctly perform the task by the end of training.<span class='required'>*</span>
                 </div>
                 <div>
                     <ul class='likert'>
@@ -61,7 +63,7 @@
             <!-- beginning of a question -->
             <div class="row question">
                 <div>
-                    The AI student only needed a few examples to learn.
+                    The AI student only needed a few examples to learn.<span class='required'>*</span>
                 </div>
                 <div>
                     <ul class='likert'>
@@ -93,7 +95,7 @@
             <!-- beginning of a question -->
             <div class="row question">
                 <div>
-                    The AI student quickly decided what actions to take next.
+                    The AI student quickly decided what actions to take next.<span class='required'>*</span>
                 </div>
                 <div>
                     <ul class='likert'>
@@ -125,7 +127,7 @@
             <!-- beginning of a question -->
             <div class="row question">
                 <div>
-                    Instructing to the AI student was natural and intuitive.
+                    Instructing to the AI student was natural and intuitive.<span class='required'>*</span>
                 </div>
                 <div>
                     <ul class='likert'>
@@ -157,28 +159,28 @@
             <!-- beginning of a question -->
             <div class="row question">
                 <div>
-                    The instructional options I was presented with were always appropriate. 
+                    The instructional options I was presented with were always useful.<span class='required'>*</span>
                 </div>
                 <div>
                     <ul class='likert'>
                       <li>
-                        <input type="radio" name="instruction_options_were_appropriate" value="strongly_diagree">
+                        <input type="radio" name="instruction_options_were_useful" value="strongly_diagree">
                         <label>Strongly disagree</label>
                       </li>
                       <li>
-                        <input type="radio" name="instruction_options_were_appropriate" value="disagree">
+                        <input type="radio" name="instruction_options_were_useful" value="disagree">
                         <label>Disagree</label>
                       </li>
                       <li>
-                        <input type="radio" name="instruction_options_were_appropriate" value="neither_agree_nor_disagree">
+                        <input type="radio" name="instruction_options_were_useful" value="neither_agree_nor_disagree">
                         <label>Neither agree nor disagree</label>
                       </li>
                       <li>
-                        <input type="radio" name="instruction_options_were_appropriate" value="agree">
+                        <input type="radio" name="instruction_options_were_useful" value="agree">
                         <label>Agree</label>
                       </li>
                       <li>
-                        <input type="radio" name="instruction_options_were_appropriate" value="strongly_agree">
+                        <input type="radio" name="instruction_options_were_useful" value="strongly_agree">
                         <label>Strongly agree</label>
                       </li>
                     </ul>
@@ -190,11 +192,11 @@
             <div class="row question">
                 <div>
                     Please describe any instructional options that you did not
-                    think were appropriate as well as the situations in which they
+                    think were useful as well as the situations in which they
                     occured.
                 </div>
                 <div>
-                    <textarea rows="3" name="describe_inappropriate_instructional_options"></textarea>
+                    <textarea rows="3" name="describe_non_useful_instructional_options"></textarea>
                 </div>
             </div>
             <!-- end of a question -->
@@ -202,7 +204,7 @@
             <!-- beginning of a question -->
             <div class="row question">
                 <div>
-                    I was always provided with all the instructional options I wanted. 
+                    I was always provided with all the instructional options I wanted.<span class='required'>*</span>
                 </div>
                 <div>
                     <ul class='likert'>
@@ -245,7 +247,7 @@
             <!-- beginning of a question -->
             <div class="row question">
                 <div>
-                    Instructing the AI student was easy.
+                    Instructing the AI student was easy.<span class='required'>*</span>
                 </div>
                 <div>
                     <ul class='likert'>
@@ -277,7 +279,7 @@
             <!-- beginning of a question -->
             <div class="row question">
                 <div>
-                    If you were to teach the AI student again, what might you do differently?
+                    If you were to teach the AI student again, what might you do differently?<span class='required'>*</span>
                 </div>
                 <div>
                     <textarea rows="3" name="describe_what_you_would_do_different"></textarea>
