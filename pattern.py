@@ -54,8 +54,14 @@ class HtmlUnity(Modality):
         self.requesting_finish = False
         self.stale = False
         self.last_action = None
-        self.sio.emit("reset", self.student)
-        self.sio.emit("reset", self.teacher)
+        #self.sio.emit("reset", room=self.teacher)
+        #self.sio.emit("reset", room=self.student)
+        print("setting floor plan to " + str(self.student))
+        
+        self.sio.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.teacher)#room=self.student)
+        self.sio.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.student)#oom=self.teacher)
+
+        #self.sio.emit("reset", self.teacher)
         self.waiting = False
 
     def partner(self, actor):
@@ -177,6 +183,7 @@ class HtmlUnity(Modality):
 
     # can be overwritten
     def initial_state(self, actor, state):
+        
         if self.initial_state is None:
             # first initial state submitted is chosen 
             self.initial_state = state

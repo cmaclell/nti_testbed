@@ -94,8 +94,11 @@ def on_ (sid, data):
     room = data['id']
     sio.enter_room(sid, room)
 
+    #sio.emit("doNotWaitForAction", room=room)
     sio.emit("unlockChatBox", room=room)
-
+    sio.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=room)#room=self.student)
+    #sio.emit('unlock', room=room)
+    
     # user is reconnecting
     busy = False
     if room in list(connections.values()):
@@ -121,7 +124,7 @@ def on_ (sid, data):
         else:
             register_user(room)
 
-    sio.emit("unlockChatBox", room=room)
+    
 
     connections[sid] = room
     
@@ -171,12 +174,16 @@ def initialState(sid, data):
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
+   
+
     if game is not None:
-        if game.student == uid:
+        
+            #print("STUDENT INITIAL STATE "  + str(data))
             # game.event(uid, event_type='set_initial_state', event_data=data)
             # game.initial_state = data
             # sio.emit('load', game.initial_state, room=game.teacher)
-            game.event(uid, event_type='initial_state', event_data=data)
+        game.event(uid, event_type='initial_state', event_data=data)
+
 
 
 @sio.on('endedAction')
@@ -253,6 +260,7 @@ def testing_user(uid):
     games[uid] = new_game
     arg = {"role" : games[uid].role_string(uid), "pattern" : new_game.__class__.__name__}
     sio.emit("instructions", arg, room=uid)
+
         
 
 ### MODALITY LOGIC ### 
