@@ -1,10 +1,13 @@
 import socketio
 import util
-from functools import partial
 import pickle
 import traceback
 import os
+
 import button_menu
+
+import trollius
+from trollius import From, Return
 
 class Modality(object):
     pass
@@ -124,7 +127,7 @@ class HtmlUnity(Modality):
         self.emit('load', self.current_state, room=actor)
         self.update_ui(actor)
         print('attempting to reconnect ' + self.role_string(actor))
-        self.emit('sendTrainingMessage', "* Reconnected as "+self.role_string(actor) + " in " + self.__class__.__name__, room=actor)
+        #self.emit('sendTrainingMessage', "* Reconnected as "+self.role_string(actor) + " in " + self.__class__.__name__, room=actor)
 
     def event(self, actor, event_type, event_data):
         print(str(self.event_dict[event_type]))
@@ -186,39 +189,58 @@ class HtmlUnity(Modality):
             print("sending initial state to " + self.role_string(actor))
             self.emit('load', self.current_state, room=actor)
         self.update_ui(actor)
-            
+        
+    def sleep_callback(self, player, seconds_remaining=3):
+        if seconds_remaining == 0:
+            self.waiting=False
+            self.emit("reset", player)
+        else:
+            self.emit("sendTrainingMessage", "* " + str(seconds_remaining) + "..", room=player)
+            self.emit("sleep_callback", seconds_remaining-1, room=player)
+
+
     def new_task(self):
+        
         self.current_task += 1
         self.initial_state = None
         self.current_state = None
+        players = []
+        
         if self.current_task >= self.num_teaching_tasks + self.num_testing_tasks:
+            
             self.emit("complete_hit", "args", room=self.student)
             self.stale = True
             self.finished[self.student] = True
             # todo: cleanup game here
+        else:
+            players.append(self.student)
 
         if self.current_task >= self.num_teaching_tasks:
-            self.emit("reset", room=self.student)
             if self.current_task == self.num_teaching_tasks:
+                
                 self.emit("complete_hit", "args", room=self.teacher)
                 self.finished[self.teacher] = True
-                self.emit("sendTrainingMessage", "* Done with the training phase of the experiment. Now you will be tested on your knowledge. Complete the tasks as before, but you will receive no feedback or assistance.", room=self.student)
                 self.test_mode(self.student)
-            else:
-                self.emit("sendTrainingMessage", "* Starting a new testing task. ", room=self.student)
 
         else:
-            self.emit("reset", room=self.teacher)
-            self.emit("reset", room=self.student)
-            self.emit("sendTrainingMessage", "* Starting a new teaching task.", room=self.teacher)
-            self.emit("sendTrainingMessage", "* Starting a new teaching task.", room=self.student)
-        #todo: save prior game and state to list of tasks in this game
+            players.append(self.teacher)
+
+        self.waiting = True
+
+        print(players)
+        if len(players) == 1:
+                self.emit("sendTrainingMessage", "* Done with the training phase of the experiment. Now you will be tested on your knowledge. Complete the tasks as before, but you will receive no feedback or assistance. ", room=players[0])
+     
+        for player in players:
+            self.emit("new_task", "testing" if len(players)==1 else "training", room=player)
+            self.emit("sendTrainingMessage", "* Current task has been marked complete. Starting a new task in", room=player)            
+            self.emit("sleep_callback", 3, room=player)
+        
+            
 
     def test_mode(self, user):
         self.event_dict['action'] = HtmlUnityTest.action.__func__
         self.event_dict['button'] = HtmlUnityTest.button.__func__
-
-        #self.button = partial(HtmlUnityTest.initial_state, self)
         
         self.unity_lock[user] = False
         self.html_lock[user] = False
@@ -434,7 +456,7 @@ class HtmlUnityApprentice(HtmlUnity):
                 self.unity_lock[self.teacher] = False
                 self.demonstrate = True
                 self.training_buttons[self.student] = []
-                self.training_buttons[self.teacher] = []
+                self.training_buttons[self.teacher] = button_menu.demonstrate_teacher
 
         if actor==self.teacher:
             self.control = self.student
@@ -442,7 +464,12 @@ class HtmlUnityApprentice(HtmlUnity):
             self.html_lock[self.teacher] = True
             self.html_lock[self.student] = False
 
+            if button_id == "finish":
+                self.emit('sendTrainingMessage', r"* The teacher indicated you finished with the task", room=self.student)
+                self.new_task()
+
             if button_id == "finish:yes":
+                self.emit('sendTrainingMessage', r"* The teacher agreed that you are finished with the task", room=self.student)
                 self.new_task()
 
             if button_id == "finish:no":

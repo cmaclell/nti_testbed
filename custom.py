@@ -20,6 +20,7 @@ import sys
 import traceback
 import random
 
+
 #our stuff
 #from custom_models import User, Task, Event
 from util import exception
@@ -124,6 +125,13 @@ def on_ (sid, data):
 
     connections[sid] = room
     
+@sio.on("sleep_callback")
+def sleep_callback(sid, data):
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
+
+    if game is not None:
+        game.sleep_callback(uid, seconds_remaining=data)
 
 
 # UNITY WEBSOCKET API ENDPOINTS
@@ -243,7 +251,8 @@ def testing_user(uid):
     new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
     sio.emit("sendTrainingMessage", "* Entering sandbox mode.", room=uid)
     games[uid] = new_game
-    sio.emit("instructions", games[uid].role_string(uid), room=uid)
+    arg = {"role" : games[uid].role_string(uid), "pattern" : new_game.__class__.__name__}
+    sio.emit("instructions", arg, room=uid)
         
 
 ### MODALITY LOGIC ### 
@@ -272,7 +281,8 @@ def register_user(uid):
         for user in [a, b]:
             games[user] = new_game
             sio.emit("sendTrainingMessage", "* You've been matched as "+ games[user].role_string(user) + ".", room=user)
-            sio.emit("instructions", games[user].role_string(user), room=user)
+            arg = {"role" : games[user].role_string(user), "pattern" : new_game.__class__.__name__}
+            sio.emit("instructions", arg, room=user)
 
     else:
         sio.emit("sendTrainingMessage", "* Waiting for a partner.", room=uid)

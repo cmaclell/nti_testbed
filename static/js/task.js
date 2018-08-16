@@ -11,6 +11,10 @@ var psiTurk = new PsiTurk(uniqueId, adServerLoc, mode);
 var socket;
 console.log("loading task.js for worker: " + uniqueId);
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 var pages = [
     "stage.html",
     "success.html",
@@ -202,14 +206,21 @@ $(window).load(function() {
     
     socket = io.connect("ws://" + window.location.host); 
 
-    //psiTurk.showPage('stage.html');
+    psiTurk.showPage('stage.html');
 
     socket.on('instructions', function(role) {
-        do_instructions(role)
+        //do_instructions(role)
     })
     // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
     socket.on('refresh', function(role) {
-        do_instructions(role);
+        //do_instructions(role);
+    })
+
+    socket.on('sleep_callback', async function(seconds) {
+        console.log("sleep callback before")
+        await sleep(1000)
+        console.log("sleep callback after")
+        socket.emit("sleep_callback", seconds)
     })
 
     socket.emit('join', {
