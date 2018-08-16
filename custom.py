@@ -111,7 +111,8 @@ def on_ (sid, data):
 
                 #handle case of refreshing the page
                 if 'first' in data and games[room].read_instructions[room]:
-                    sio.emit("refresh", room=room)
+                    arg = {"role" : games[room].role_string(room), "pattern" : games[room].__class__.__name__}
+                    sio.emit("refresh", arg, room=room)
 
                 games[room].reconnect(room)
                 busy = True
