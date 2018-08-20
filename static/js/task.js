@@ -59,10 +59,14 @@ function start_task(){
     });
 }
 
-do_instructions = function(role) {
-    console.log("instruction request for role: " + role);
+do_instructions = function(rolepattern) {
+    role = rolepattern['role']
+    pattern = rolepattern['pattern']
+
+    console.log("instruction request for role: " + role + " in pattern: " + pattern);
     set_complete_hit_listener(role);
 
+    psiTurk.recordUnstructuredData('pattern', pattern);
     psiTurk.recordUnstructuredData('role', role);
 
     if (role == "sandbox") {
@@ -205,21 +209,22 @@ function set_complete_hit_listener(role) {
 $(window).load(function() {
     
     socket = io.connect("ws://" + window.location.host); 
+    console.log("conneced to socket")
+    //psiTurk.showPage('stage.html');
 
-    psiTurk.showPage('stage.html');
-
-    socket.on('instructions', function(role) {
-        //do_instructions(role)
+    socket.on('instructions', function(rolepattern) {
+        console.log(rolepattern)
+        do_instructions(rolepattern)
     })
     // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
-    socket.on('refresh', function(role) {
-        //do_instructions(role);
+    socket.on('refresh', function(rolepattern) {
+        do_instructions(rolepattern);
     })
 
     socket.on('sleep_callback', async function(seconds) {
-        console.log("sleep callback before")
+        //console.log("sleep callback before")
         await sleep(1000)
-        console.log("sleep callback after")
+        //console.log("sleep callback after")
         socket.emit("sleep_callback", seconds)
     })
 

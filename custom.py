@@ -291,6 +291,7 @@ def register_user(uid):
             games[user] = new_game
             sio.emit("sendTrainingMessage", "* You've been matched as "+ games[user].role_string(user) + ".", room=user)
             arg = {"role" : games[user].role_string(user), "pattern" : new_game.__class__.__name__}
+           
             sio.emit("instructions", arg, room=user)
 
     else:
