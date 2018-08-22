@@ -37,6 +37,19 @@ var teacher_instruction_pages = [
     "instructions/ready.html",
 ];
 
+var instruction_pages = 
+    [
+        "instructions/$ROLE-process-and-role.html",
+        "instructions/$ROLE-task-interface.html",
+        null,
+        "instructions/$ROLE-task.html",
+        "instructions/ready.html",
+    ];
+    
+var pattern_pages = {"HtmlUnityApprentice" : "instructions/$ROLE-training-interface-apprentice.html", 
+            "HtmlUnityReward" : "instructions/$ROLE-training-interface-reward.html",
+            "HtmlUnityDemonstrate" : "instructions/$ROLE-training-interface-demonstrate.html"}
+
 
 psiTurk.preloadPages(pages);
 
@@ -52,47 +65,59 @@ completehit = function(arg) {
 }
 
 function start_task(){
-    psiturk.finishInstructions();
+    psiTurk.finishInstructions();
+    psiTurk.taskdata.set('instructions_done', true);
     psiTurk.showPage('stage.html');
     psiTurk.recordTrialData({
         'phase': 'task',
         'status': 'start'
     });
-    psiturk.saveData();
+    psiTurk.saveData();
 }
 
-do_instructions = function(data) {
-    var role = data['role'];
-    var pattern = data['pattern'];
+do_instructions = function(rolepattern) {
+    role = rolepattern['role']
+    pattern = rolepattern['pattern']
 
-    console.log("instruction request for role: " + role);
-    console.log("instruction request for pattern: " + pattern);
+    console.log("instruction request for role: " + role + " in pattern: " + pattern);
     set_complete_hit_listener(role);
 
     psiTurk.recordUnstructuredData('role', role);
     psiTurk.recordUnstructuredData('pattern', pattern);
-    psiturk.saveData();
+    psiTurk.saveData();
 
-    if (role == "sandbox") {
-        psiTurk.preloadPages(teacher_instruction_pages);
-        psiTurk.doInstructions(teacher_instruction_pages, function() {
-            start_task();
-        });
+    instruction_pages[2] = pattern_pages[pattern]
+
+    for (var page in instruction_pages) {
+        instruction_pages[page] = instruction_pages[page].replace("$ROLE", role);
+        // page.replace("$ROLE", role)
     }
 
-    if (role == "student") {
-        psiTurk.preloadPages(student_instruction_pages);
-        psiTurk.doInstructions(student_instruction_pages, function() {
+    psiTurk.preloadPages(instruction_pages);
+    psiTurk.doInstructions(instruction_pages, function() {
             start_task();
-        });
-    }
+    });
 
-    if (role == "teacher") {
-        psiTurk.preloadPages(teacher_instruction_pages);
-        psiTurk.doInstructions(teacher_instruction_pages, function() {
-            start_task();
-        });
-    }
+    // if (role == "sandbox") {
+    //     psiTurk.preloadPages(teacher_instruction_pages);
+    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
+
+    // if (role == "student") {
+    //     psiTurk.preloadPages(student_instruction_pages);
+    //     psiTurk.doInstructions(student_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
+
+    // if (role == "teacher") {
+    //     psiTurk.preloadPages(teacher_instruction_pages);
+    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
 
 }
 
@@ -143,7 +168,7 @@ function set_complete_hit_listener(role) {
                 psiTurk.recordUnstructuredData(this.name, this.value);
             });
 
-            psiturk.saveData();
+            psiTurk.saveData();
 
         };
 
@@ -187,7 +212,7 @@ function set_complete_hit_listener(role) {
             'phase': 'postquestionnaire',
             'status': 'start'
         });
-        psiturk.saveData();
+        psiTurk.saveData();
 
         // psiTurk.completeHIT()
         $("#next").click(function() {
@@ -216,22 +241,28 @@ function set_complete_hit_listener(role) {
 $(window).load(function() {
     
     socket = io.connect("ws://" + window.location.host); 
-
+    
     psiTurk.showPage('stage.html');
 
     socket.on('instructions', function(data) {
         do_instructions(data);
         //do_instructions(role)
     })
+
     // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
-    socket.on('refresh', function(role) {
-        //do_instructions(role);
+    socket.on('refresh', function(rolepattern) {
+        if (psiTurk.taskdata.get('instructions_done') == true){
+            psiTurk.showPage('stage.html');
+        }
+        else{
+            do_instructions(rolepattern);
+        }
     })
 
     socket.on('sleep_callback', async function(seconds) {
-        console.log("sleep callback before")
+        //console.log("sleep callback before")
         await sleep(1000)
-        console.log("sleep callback after")
+        //console.log("sleep callback after")
         socket.emit("sleep_callback", seconds)
     })
 
