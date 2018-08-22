@@ -52,18 +52,26 @@ completehit = function(arg) {
 }
 
 function start_task(){
+    psiturk.finishInstructions();
     psiTurk.showPage('stage.html');
     psiTurk.recordTrialData({
         'phase': 'task',
         'status': 'start'
     });
+    psiturk.saveData();
 }
 
-do_instructions = function(role) {
+do_instructions = function(data) {
+    var role = data['role'];
+    var pattern = data['pattern'];
+
     console.log("instruction request for role: " + role);
+    console.log("instruction request for pattern: " + pattern);
     set_complete_hit_listener(role);
 
     psiTurk.recordUnstructuredData('role', role);
+    psiTurk.recordUnstructuredData('pattern', pattern);
+    psiturk.saveData();
 
     if (role == "sandbox") {
         psiTurk.preloadPages(teacher_instruction_pages);
@@ -135,6 +143,8 @@ function set_complete_hit_listener(role) {
                 psiTurk.recordUnstructuredData(this.name, this.value);
             });
 
+            psiturk.saveData();
+
         };
 
         prompt_resubmit = function() {
@@ -177,6 +187,7 @@ function set_complete_hit_listener(role) {
             'phase': 'postquestionnaire',
             'status': 'start'
         });
+        psiturk.saveData();
 
         // psiTurk.completeHIT()
         $("#next").click(function() {
@@ -208,7 +219,8 @@ $(window).load(function() {
 
     psiTurk.showPage('stage.html');
 
-    socket.on('instructions', function(role) {
+    socket.on('instructions', function(data) {
+        do_instructions(data);
         //do_instructions(role)
     })
     // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
