@@ -37,6 +37,19 @@ var teacher_instruction_pages = [
     "instructions/ready.html",
 ];
 
+var instruction_pages = 
+    [
+        "instructions/$ROLE-process-and-role.html",
+        "instructions/$ROLE-task-interface.html",
+        null,
+        "instructions/$ROLE-task.html",
+        "instructions/ready.html",
+    ];
+    
+var pattern_pages = {"HtmlUnityApprentice" : "instructions/$ROLE-training-interface-apprentice.html", 
+            "HtmlUnityReward" : "instructions/$ROLE-training-interface-reward.html",
+            "HtmlUnityDemonstrate" : "instructions/$ROLE-training-interface-demonstrate.html"}
+
 
 psiTurk.preloadPages(pages);
 
@@ -69,26 +82,37 @@ do_instructions = function(rolepattern) {
     psiTurk.recordUnstructuredData('pattern', pattern);
     psiTurk.recordUnstructuredData('role', role);
 
-    if (role == "sandbox") {
-        psiTurk.preloadPages(teacher_instruction_pages);
-        psiTurk.doInstructions(teacher_instruction_pages, function() {
-            start_task();
-        });
+    instruction_pages[2] = pattern_pages[pattern]
+
+    for (var page in instruction_pages) {
+        page.replace("$ROLE", role)
     }
 
-    if (role == "student") {
-        psiTurk.preloadPages(student_instruction_pages);
-        psiTurk.doInstructions(student_instruction_pages, function() {
+    psiTurk.preloadPages(instruction_pages);
+    psiTurk.doInstructions(instruction_pages, function() {
             start_task();
-        });
-    }
+    });
 
-    if (role == "teacher") {
-        psiTurk.preloadPages(teacher_instruction_pages);
-        psiTurk.doInstructions(teacher_instruction_pages, function() {
-            start_task();
-        });
-    }
+    // if (role == "sandbox") {
+    //     psiTurk.preloadPages(teacher_instruction_pages);
+    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
+
+    // if (role == "student") {
+    //     psiTurk.preloadPages(student_instruction_pages);
+    //     psiTurk.doInstructions(student_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
+
+    // if (role == "teacher") {
+    //     psiTurk.preloadPages(teacher_instruction_pages);
+    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
 
 }
 
@@ -209,16 +233,15 @@ function set_complete_hit_listener(role) {
 $(window).load(function() {
     
     socket = io.connect("ws://" + window.location.host); 
-    console.log("conneced to socket")
-    //psiTurk.showPage('stage.html');
+    
+    psiTurk.showPage('stage.html');
 
     socket.on('instructions', function(rolepattern) {
-        console.log(rolepattern)
-        do_instructions(rolepattern)
+        //do_instructions(rolepattern)
     })
     // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
     socket.on('refresh', function(rolepattern) {
-        do_instructions(rolepattern);
+        //do_instructions(rolepattern);
     })
 
     socket.on('sleep_callback', async function(seconds) {
