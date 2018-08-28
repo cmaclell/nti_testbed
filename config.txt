@@ -27,7 +27,7 @@ login_pw = CHANGETHISTOO
 threads = auto
 
 [Task Parameters]
-single_player = true
+single_player = false
 
 [Shell Parameters]
 launch_in_sandbox_mode = true

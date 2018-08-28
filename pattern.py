@@ -5,6 +5,7 @@ import traceback
 import os
 import time
 import json
+import random
 
 import button_menu
 
@@ -36,11 +37,11 @@ class HtmlUnity(Modality):
                             'button': self.__class__.button, 
                             'action': self.__class__.action, 
                             'chat': self.__class__.chat,
-                            'initial_state' : self.__class__.initial_state,
-                            'game_state' : self.__class__.game_state
+                            #'initial_state' : self.__class__.initial_state,
+                            #'game_state' : self.__class__.game_state
                         }
 
-        self.good_levels = []
+        self.good_levels = ['oneroom2_init.p']
 
         self.action_descriptions = {
                             'go': "move along current waypoints",
@@ -70,12 +71,24 @@ class HtmlUnity(Modality):
         self.requesting_finish = False
         self.stale = False
         self.last_action = None
+        self.idle = True
+        self.prev_task_id = None
         
         #print("setting floor plan to " + str(self.student))
         
         #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.teacher)#room=self.student)
         #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.student)#oom=self.teacher)
         self.waiting = False
+
+    def revert(self, uid, state):
+        
+        
+        self.current_state = state
+        print(state)
+        print("emitting revert to prior state")
+        self.emit("load", state, room=self.partner(uid))
+        self.emit("clearWaypoints", room=self.partner(uid))
+
         
 
     def partner(self, actor):
@@ -83,7 +96,7 @@ class HtmlUnity(Modality):
             return self.teacher
         if actor==self.teacher:
             return self.student
-        assert False
+        return ""
         
     def role_string(self, actor):
         if self.student == self.teacher:
@@ -92,13 +105,15 @@ class HtmlUnity(Modality):
             return "student"
         if actor==self.teacher:
             return "teacher"
-        assert False
+        return "ROLE NOT DEFINED"
 
     #blocks
     def playback(self, task_id, room, use_student=True, fast=False):
         task = db_session.query(Task).filter(Task.task_id==task_id).one()
         user_room = task.student if use_student else task.teacher
         prev_time = task.timestamp
+
+        self.sio.emit("reset", room=room)
 
         for emission in task.emissions:
             if user_room in emission.room: # == user_room or emission.room == 'playback'+user_room:
@@ -196,6 +211,8 @@ class HtmlUnity(Modality):
     def reconnect(self, actor):
         print('attempting to reconnect ' + self.role_string(actor))
 
+        #arg = {"role" : self.role_string(actor), "pattern" : self.__class__.__name__}
+        #self.emit("instructions", arg, room=actor)
 
         if self.current_state is not None:
             self.emit('load', self.current_state, room=actor)
@@ -206,14 +223,8 @@ class HtmlUnity(Modality):
         #self.emit('sendTrainingMessage', "* Reconnected as "+self.role_string(actor) + " in " + self.__class__.__name__, room=actor)
 
     def event(self, actor, event_type, event_data):
-        if event_type=='action':
-            pass
-            #print("action: " + str(event_data['info']))
-
-
         self.event_dict[event_type](self, actor, event_data)
        
-
         self.update_ui()
 
     def emit(self, topic, argument=None, room=None):
@@ -233,10 +244,6 @@ class HtmlUnity(Modality):
                 db_session.commit()
             except Exception as e:
                 print("problem logging emission: " + str(topic) + ": " + str(e) + " on task " + str(self.current_task_id))
-
-        if topic == 'action':
-            argument['prior state'] = None
-
 
         if argument is None:
             self.sio.emit(topic, room=room)
@@ -278,14 +285,16 @@ class HtmlUnity(Modality):
     def game_state(self, actor, state):
         if state is not None:
             if self.initial_state is None:
-                self.initial_state(actor, state)
+                pass
+                #self.set_initial_state(actor, state)
             else:
                 pass
                 #self.current_state = state
 
     # can be overwritten
-    def initial_state(self, actor, state):
+    def set_initial_state(self, actor, state):
         """ handles an initial_state coming from an actor, or call with predefined level to """
+        
         if self.initial_state is None:
 
             new_task = Task(init_state=state)
@@ -298,14 +307,14 @@ class HtmlUnity(Modality):
             new_task.init_state = json.dumps(state)
 
             db_session.commit()
-            print("task_id " + str(new_task.task_id))
+            print("creating task with id: " + str(new_task.task_id))
             self.current_task_id = new_task.task_id
             
             # first initial state submitted is chosen 
             self.initial_state = state
             self.current_state = state
             self.prev_state = state
-            self.state_stack=[state]
+            #self.state_stack=[state]
     
             self.emit('load', self.current_state, room=actor)
             self.emit('load', self.current_state, room=self.partner(actor))
@@ -315,35 +324,61 @@ class HtmlUnity(Modality):
         
     def sleep_callback(self, actor, seconds_remaining=3):
         """ terrible, terrible workaround for being able to sleep """ 
-        if seconds_remaining == 0:
-            if actor==self.student:
-                self.initial_state = None
-                self.waiting=False
+        
+        if seconds_remaining <= 0:
+            self.waiting=False
+            if self.initial_state is None:
                 if len(self.good_levels) > 0:
-                    self.initial_state(actor, random.choice(self.good_levels))
+               
+                    self.level = random.choice(self.good_levels)
+     
+                    
+                    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "stages", self.level)
+                    
+                    levelobj = pickle.load(open(path, 'rb'))
+                    
+                    
+                    self.set_initial_state(actor, levelobj)
+
+                    task = db_session.query(Task).filter(Task.task_id==self.current_task_id).one()
+                    task.level_path = json.dumps(level)
+                    db_session.commit()
+
+
                 else:
                     print("setting floor plan for " + str(actor))
                     self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=actor)
-                   
-            self.update_ui(actor)
+                       
+                self.update_ui(actor)
         else:
-            if seconds_remaining==1:
-                self.emit("reset", room=actor)
             self.emit("sendTrainingMessage", "* " + str(seconds_remaining) + "..", room=actor)
             self.emit("sleep_callback", seconds_remaining-1, room=actor)
 
 
+    def final_state(self, data):
+        try:
+            prev_task = db_session.query(Task).filter(Task.task_id==self.prev_task_id).one()
+            prev_task.final_state = json.dumps(data)
+            db_session.commit()
+            print("saved game state to " + str(self.prev_task_id))
+        except Exception as e:
+            print("error storing final state" + str(e))
+
     def new_task(self):
-
-        if self.current_task_id is not None:
-            prev_task = db_session.query(Task).filter(Task.task_id==self.current_task_id).one()
-            prev_task.final_state = json.dumps(self.current_state)
-
-        
+        self.idle = False
         self.current_task += 1
         self.initial_state = None
         self.current_state = None
         actors = []
+
+        print("starting new task " + str(self.current_task) + " prev task id " + str(self.current_task_id))
+        
+        if self.current_task > 0:
+            for key in self.finished:
+                if not self.finished[key]:
+                    print("requesting final game state")
+                    self.prev_task_id = self.current_task_id
+                    self.emit("getGameState", room=key)
         
         if self.current_task >= self.num_teaching_tasks + self.num_testing_tasks:
             print("student finished")
@@ -375,7 +410,7 @@ class HtmlUnity(Modality):
 
         for actor in actors:
             self.emit("new_task", "testing" if len(actors)==1 else "training", room=actor)
-            if self.current_task_id is not None:
+            if self.current_task > 0:
                 self.emit("sendTrainingMessage", "* Current task has been marked complete. Starting a new task in:", room=actor)            
                 self.emit("sleep_callback", 3, room=actor)
             else:
@@ -420,9 +455,8 @@ class HtmlUnityTest(HtmlUnity):
 
         #self.training_buttons[actor] = button_menu.test
 
-        if actor==self.student:
-
-            self.state_stack.append(action['prior state'])
+        #if actor==self.student:
+            #self.state_stack.append(action['prior state'])
             
         self.update_ui(actor)
 
@@ -493,8 +527,9 @@ class HtmlUnityReward(HtmlUnity):
 
             if button_id == "finish:no":
                 self.emit('sendTrainingMessage', r"* The teacher does not think you're finished, try to figure out what you've forgotten.", room=self.student)
-                self.emit('load', self.prev_state, room=self.student)
-                self.emit('load', self.prev_state, room=self.teacher)
+                self.emit('getPrevStateAndRevert', room=self.student)
+                #self.emit('load', self.prev_state, room=self.student)
+                #self.emit('load', self.prev_state, room=self.teacher)
 
             if button_id == "action:yes":
                 if self.last_action['info']['function'] == 'set_waypoint':
@@ -513,8 +548,11 @@ class HtmlUnityReward(HtmlUnity):
                 self.emit('sendTrainingMessage', '* The teacher allowed your action.', room=self.student)
                 
             if button_id == "action:no": 
-                self.emit('load', self.prev_state, room=self.student)
-                self.emit('load', self.prev_state, room=self.teacher)
+                #self.emit('load', self.prev_state, room=self.student)
+                #self.emit('load', self.prev_state, room=self.teacher)
+                #self.emit('getPrevStateAndRevert', room=self.student)
+                self.emit('revertState', room=self.student)
+                self.emit('revertState', room=self.teacher)
 
                 self.emit('sendTrainingMessage', '* The teacher disallowed your action. Try again.', room=self.student)
 
@@ -551,7 +589,7 @@ class HtmlUnityDemonstrate(HtmlUnity):
                 self.emit("action", action, room=self.student)
 
             self.emit('action', action, room=self.student)
-            self.prev_state = action['prior state']
+            #self.prev_state = action['prior state']
             #self.state_stack.append(action['prior state'])
     
     def button(self, actor, button_id):
@@ -660,8 +698,10 @@ class HtmlUnityApprentice(HtmlUnity):
 
             if button_id == "finish:no":
                 self.emit('sendTrainingMessage', r"* The teacher does not think you're finished, try to figure out what you've forgotten.", room=self.student)
-                self.emit('load', self.prev_state, room=self.student)
-                self.emit('load', self.prev_state, room=self.teacher)
+                self.emit('revertState', room=self.student)
+                self.emit('revertState', room=self.teacher)
+                #self.emit('load', self.prev_state, room=self.student)
+                #self.emit('load', self.prev_state, room=self.teacher)
 
             if button_id == "action:yes":
                 if self.last_action['info']['function'] == 'set_waypoint':
@@ -679,8 +719,10 @@ class HtmlUnityApprentice(HtmlUnity):
                 self.emit('sendTrainingMessage', '* The teacher allowed your action.', room=self.student)
                 
             if button_id == "action:no": 
-                self.emit('load', self.prev_state, room=self.student)
-                self.emit('load', self.prev_state, room=self.teacher)
+                #self.emit('load', self.prev_state, room=self.student)
+                #self.emit('load', self.prev_state, room=self.teacher)
+                self.emit('revertState', room=self.student)
+                self.emit('revertState', room=self.teacher)
                 self.emit('sendTrainingMessage', '* The teacher disallowed your action. Try again.', room=self.student)
 
             #self.prev_state = None

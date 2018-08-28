@@ -140,12 +140,21 @@ def sleep_callback(sid, data):
 
 @sio.on("ready")
 def ready(sid, data):
-    print("received ready message ##")
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
-    if game is not None and game.initial_state is None:
+    if game is not None and game.idle:
+        
         game.new_task()
+
+@sio.on("gameStateRevert")
+def revert(sid, data):
+    print("received revert message")
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
+
+    if game is not None:
+        game.revert(sid, data)
 
 
 # UNITY WEBSOCKET API ENDPOINTS
@@ -166,8 +175,8 @@ def action(sid, data):
     game = games.get(uid, None)
 
     if game is not None:
-        game.current_state = data['prior state']
-        game.prev_state = data['prior state']
+        #game.current_state = data['prior state']
+        #game.prev_state = data['prior state']
         game.event(uid, event_type='action', event_data=data)
 
 
@@ -188,22 +197,19 @@ def initialState(sid, data):
    
 
     if game is not None:
-        
-            #print("STUDENT INITIAL STATE "  + str(data))
-            # game.event(uid, event_type='set_initial_state', event_data=data)
-            # game.initial_state = data
-            # sio.emit('load', game.initial_state, room=game.teacher)
-        game.event(uid, event_type='initial_state', event_data=data)
+        pass
+        #game.event(uid, event_type='initial_state', event_data=data)
 
 @sio.on('gameState')
 @exception
 def gameState(sid, data):
+    
     #print("gameState: " + str(data))
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
     if game is not None:
-        game.event(uid, event_type='game_state', event_data=data)
+        game.final_state(data)
 
 
 

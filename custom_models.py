@@ -28,6 +28,7 @@ class Task(Base):
     last_active = Column(DateTime, nullable=True, onupdate=func.now())
     init_state = Column(Text)
     final_state = Column(Text)
+    level_path = Column(String(80))
 
     session_id = Column(Integer, ForeignKey('session.session_id'), nullable=True)
     session = relationship("Session", uselist=True, foreign_keys=[session_id], post_update=True)
