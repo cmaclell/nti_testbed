@@ -42,6 +42,8 @@
     });
 
     socket.on('getTrainingButtons', function(buttonList) {
+
+
         if (lastButtonList !== null && 
              buttonListsEqual(lastButtonList, buttonList)){
             return;
@@ -49,7 +51,9 @@
 
         $('#holdButtons').html("");
         for (var i = 0; i < buttonList.length; i++) {
+
             var data = buttonList[i];
+            
             var button = $("<button>" + data.buttonText + "</button>");
             if (data.descriptionText !== undefined){
                 $(button).attr('title', data.descriptionText);

@@ -22,7 +22,7 @@ import random
 
 
 #our stuff
-#from custom_models import User, Task, Event
+from custom_models import User, Task, Session, Emission
 from util import exception
 import pattern
 
@@ -58,7 +58,6 @@ def shutdown_session(exception=None):
 @custom_code.route('/TemplateData/<path:path>')
 @exception
 def send_Build(path):
-    print('serving template data')
     return send_from_directory('static/TemplateData', path)
 
 
@@ -86,9 +85,11 @@ def connected(sid, environ):
 def disconnect(sid):
     pass # print("socket connection closed")
 
+
+
 @sio.on('join')
 @exception
-def on_ (sid, data):
+def join(sid, data):
     # assign socket id to psiturk 
     print("join request from " + str(data))
     room = data['id']
@@ -96,7 +97,7 @@ def on_ (sid, data):
 
     #sio.emit("doNotWaitForAction", room=room)
     sio.emit("unlockChatBox", room=room)
-    sio.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=room)#room=self.student)
+    #room=self.student)
     #sio.emit('unlock', room=room)
     
     # user is reconnecting
@@ -137,6 +138,15 @@ def sleep_callback(sid, data):
     if game is not None:
         game.sleep_callback(uid, seconds_remaining=data)
 
+@sio.on("ready")
+def ready(sid, data):
+    print("received ready message ##")
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
+
+    if game is not None and game.initial_state is None:
+        game.new_task()
+
 
 # UNITY WEBSOCKET API ENDPOINTS
 @sio.on('action')
@@ -156,15 +166,15 @@ def action(sid, data):
     game = games.get(uid, None)
 
     if game is not None:
-        # print("size of action object before: " + str(sys.getsizeof(data)))
-        # data["prior state"] = None
-        # print("size of action object after: " + str(sys.getsizeof(data)))
+        game.current_state = data['prior state']
+        game.prev_state = data['prior state']
         game.event(uid, event_type='action', event_data=data)
 
 
 @sio.on('initialState')
 @exception
 def initialState(sid, data):
+    #stprint("initialState: " + str(data))
     """
     initialState(serialized_state-> as json)
     The initial state of the unity game. Called when the unity game first
@@ -185,6 +195,16 @@ def initialState(sid, data):
             # sio.emit('load', game.initial_state, room=game.teacher)
         game.event(uid, event_type='initial_state', event_data=data)
 
+@sio.on('gameState')
+@exception
+def gameState(sid, data):
+    #print("gameState: " + str(data))
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
+
+    if game is not None:
+        game.event(uid, event_type='game_state', event_data=data)
+
 
 
 @sio.on('endedAction')
@@ -198,13 +218,9 @@ def endedAction(sid):
     """
     uid = connections.get(sid, None)
     game = games.get(uid, None)
-    print("ended action called")
 
     if game is not None:
         if game.student == uid:
-        #game.event(uid, event_type='set_initial_state', event_data=data)
-            #game.initial_state = data
-            #sio.emit('load', game.initial_state, room=game.teacher)
             game.ended_action(uid)
 
 
@@ -256,7 +272,7 @@ def onTrainingButtonPress(sid, data):
 
 
 def testing_user(uid):
-    new_game = pattern.HtmlUnityTest(sio=sio, user=uid)
+    new_game = pattern.HtmlUnityTest(sio=sio, user=uid, tasks=100)
     sio.emit("sendTrainingMessage", "* Entering sandbox mode.", room=uid)
     games[uid] = new_game
     arg = {"role" : games[uid].role_string(uid), "pattern" : new_game.__class__.__name__}
@@ -267,12 +283,10 @@ def testing_user(uid):
 ### MODALITY LOGIC ### 
 def register_user(uid):
     #todo: validate user (how?)
-
     if uid not in queue:
         queue.append(uid)
 
     if len(queue) > 1 and uid not in games:
-       
         a = queue.pop(0)
         b = queue.pop(0)
 
@@ -280,30 +294,31 @@ def register_user(uid):
         if random.random() > .5:
             a, b = b, a
 
-        #todo: randomly assing pattern type here
-        print("new game created between: " + str(a) + ' and ' + str(b))
-        if "demo" in a or "demo" in b:
-            new_game = pattern.HtmlUnityDemonstrate(sio=sio, teacher=a, student=b)
-        else:
-            new_game = pattern.HtmlUnityApprentice(sio=sio, teacher=a, student=b)
+        #todo: weight pattern selection sample by quanity of type in database, if needed
+        pattern_types = [pattern.HtmlUnityDemonstrate, pattern.HtmlUnityApprentice, pattern.HtmlUnityReward]
+        new_game = random.choice(pattern_types)(sio=sio, teacher=a, student=b)
 
+
+        
         for user in [a, b]:
             games[user] = new_game
-            sio.emit("sendTrainingMessage", "* You've been matched as "+ games[user].role_string(user) + ".", room=user)
             arg = {"role" : games[user].role_string(user), "pattern" : new_game.__class__.__name__}
-           
+            #sio.emit("sendTrainingMessage", "* You've been matched as "+ games[user].role_string(user) + ".", room=user)
             sio.emit("instructions", arg, room=user)
+
+        #initial task 
+        #new_game.new_task()
+
+        db_session.commit()
 
     else:
         sio.emit("sendTrainingMessage", "* Waiting for a partner.", room=uid)
-
-    # new_user = User.query.filter(User.user_id==uid).first()
-    #waiting = User.query.filter(User.task==None).order_by(User.last_active.desc()).first()
-    #new_user = User(uid, ip='127.0.0.1')
-    #db_session.commit()
   
 if __name__=="__main__":
-    app = Flask(__name__)
-    app.register_blueprint(custom_code)
-    app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
-    app.run(host='localhost', port=5000)
+    # app = Flask(__name__)
+    # app.register_blueprint(custom_code)
+    # app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
+    # app.run(host='localhost', port=5000)
+    import os, sqlalchemy
+    if not os.path.exists("participants.db"):
+        init_db()

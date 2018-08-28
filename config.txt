@@ -3,7 +3,7 @@ title = Learning study
 description = Learning study
 amt_keywords = Learning, education, game
 lifetime = 24
-us_only = true
+us_only = false
 approve_requirement = 95
 contact_email_on_error = aybabtu107@gmail.com
 ad_group = apprentice
@@ -27,7 +27,7 @@ login_pw = CHANGETHISTOO
 threads = auto
 
 [Task Parameters]
-single_player = false
+single_player = true
 
 [Shell Parameters]
 launch_in_sandbox_mode = true

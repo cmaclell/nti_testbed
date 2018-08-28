@@ -4,8 +4,26 @@ import traceback
 import datetime
 import os
 
-def time_str():
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+import sqlalchemy.types as types
+import json
+
+# class StringyJSON(types.TypeDecorator):
+#     impl = types.TEXT
+
+#     def process_bind_param(self, value, dialect):
+#         if value is not None:
+#             value = json.dumps(value)
+#         return value
+
+#     def process result_value(self, value, dialect):
+#         if value is not None:
+#             value = json.loads(value)
+#         return value
+
+# MagicJSON = types.JSON().with_variant(StringyJSON, 'sqlite')
+
+# def time_str():
+#     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 #log_file = open(os.path.join("logs", time_str() + ".txt"), "w")
 
@@ -26,6 +44,8 @@ def exception(function):
             traceback.print_exc()
             #traceback.print_exc(file=log_file)
     return wrapper
+
+
  
 # def create_logger():
 #     """

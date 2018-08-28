@@ -66,6 +66,7 @@ completehit = function(arg) {
 
 function start_task(){
     psiTurk.showPage('stage.html');
+    socket.emit('ready', null);
     psiTurk.recordTrialData({
         'phase': 'task',
         'status': 'start'
@@ -78,6 +79,9 @@ do_instructions = function(rolepattern) {
 
     console.log("instruction request for role: " + role + " in pattern: " + pattern);
     set_complete_hit_listener(role);
+
+    start_task();
+    return;
 
     psiTurk.recordUnstructuredData('pattern', pattern);
     psiTurk.recordUnstructuredData('role', role);
@@ -92,28 +96,6 @@ do_instructions = function(rolepattern) {
     psiTurk.doInstructions(instruction_pages, function() {
             start_task();
     });
-
-    // if (role == "sandbox") {
-    //     psiTurk.preloadPages(teacher_instruction_pages);
-    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
-    //         start_task();
-    //     });
-    // }
-
-    // if (role == "student") {
-    //     psiTurk.preloadPages(student_instruction_pages);
-    //     psiTurk.doInstructions(student_instruction_pages, function() {
-    //         start_task();
-    //     });
-    // }
-
-    // if (role == "teacher") {
-    //     psiTurk.preloadPages(teacher_instruction_pages);
-    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
-    //         start_task();
-    //     });
-    // }
-
 }
 
 
@@ -234,19 +216,19 @@ $(window).load(function() {
     
     socket = io.connect("ws://" + window.location.host); 
     
-    psiTurk.showPage('stage.html');
+    
 
     socket.on('instructions', function(rolepattern) {
-        //do_instructions(rolepattern)
+        do_instructions(rolepattern)
     })
-    // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
+   
     socket.on('refresh', function(rolepattern) {
-        //do_instructions(rolepattern);
+        do_instructions(rolepattern);
     })
 
     socket.on('sleep_callback', async function(seconds) {
         //console.log("sleep callback before")
-        await sleep(1000)
+        await sleep(600)
         //console.log("sleep callback after")
         socket.emit("sleep_callback", seconds)
     })
@@ -260,5 +242,7 @@ $(window).load(function() {
     socket.emit('join', {
         'id': uniqueId
     });
+
+   
 });
 });
