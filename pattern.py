@@ -6,6 +6,7 @@ import os
 import time
 import json
 import random
+import copy
 
 import button_menu
 
@@ -41,6 +42,13 @@ class HtmlUnity(Modality):
                             #'game_state' : self.__class__.game_state
                         }
 
+        self.easy_levels = ['easy4_init.p', 'easy22_init.p', 'oneroom3_init.p', 'oneroom888_init.p']
+        self.medium_levels = ['normal_1_init.p', 'medium1_init.p', 'medium8_init.p', 'mediumnav1_init.p']
+        self.hard_levels = ['hard1_init.p', "hard2_init.p", "hard3_init.p", "hard4_init.p"]
+
+        self.training_levels = [l for l in self.easy_levels]
+        self.testing_levels = [l for l in self.medium_levels]
+
         self.good_levels = ['oneroom2_init.p']
 
         self.action_descriptions = {
@@ -73,7 +81,7 @@ class HtmlUnity(Modality):
         self.last_action = None
         self.idle = True
         self.prev_task_id = None
-        
+        self.testing = False
         #print("setting floor plan to " + str(self.student))
         
         #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.teacher)#room=self.student)
@@ -315,7 +323,9 @@ class HtmlUnity(Modality):
             self.current_state = state
             self.prev_state = state
             #self.state_stack=[state]
-    
+            self.unity_lock = self.init_unity_lock
+            self.html_lock = self.init_html_lock
+
             self.emit('load', self.current_state, room=actor)
             self.emit('load', self.current_state, room=self.partner(actor))
         else:
@@ -324,19 +334,27 @@ class HtmlUnity(Modality):
         
     def sleep_callback(self, actor, seconds_remaining=3):
         """ terrible, terrible workaround for being able to sleep """ 
-        
+
+        def random_pop(l):
+            return l.pop(random.randrange(len(l)))
+            
         if seconds_remaining <= 0:
             self.waiting=False
             if self.initial_state is None:
-                if len(self.good_levels) > 0:
-               
-                    self.level = random.choice(self.good_levels)
+
+                if self.testing:
+                    levels = self.testing_levels
+                else:
+                    levels = self.training_levels
+
+                if len(levels) > 0:
+                    self.level = random_pop(levels)
      
-                    
+                    print("chose level " + self.level)
+
                     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "stages", self.level)
                     
                     levelobj = pickle.load(open(path, 'rb'))
-                    
                     
                     self.set_initial_state(actor, levelobj)
 
@@ -346,8 +364,10 @@ class HtmlUnity(Modality):
 
 
                 else:
-                    print("setting floor plan for " + str(actor))
-                    self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=actor)
+                    print("no levels to sample from, resetting instead")
+                    self.emit("reset", room=actor)
+                    #print("setting floor plan for " + str(actor))
+                    #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=actor)
                        
                 self.update_ui(actor)
         else:
@@ -371,7 +391,7 @@ class HtmlUnity(Modality):
         self.current_state = None
         actors = []
 
-        print("starting new task " + str(self.current_task) + " prev task id " + str(self.current_task_id))
+        #print("starting new task " + str(self.current_task) + " prev task id " + str(self.current_task_id))
         
         if self.current_task > 0:
             for key in self.finished:
@@ -396,7 +416,9 @@ class HtmlUnity(Modality):
                 print("teacher finished")
                 self.emit("complete_hit", "args", room=self.teacher)
                 self.finished[self.teacher] = True
-                self.test_mode(self.student)
+                #self.test_mode(self.student)
+                self.init(self.student)
+                self.testing = True
 
         else:
             actors.append(self.teacher)
@@ -419,6 +441,24 @@ class HtmlUnity(Modality):
             self.update_ui(actor)
 
     def test_mode(self, user):
+        pass  
+
+   
+class HtmlUnityTest(HtmlUnity):
+    def __init__(self, sio, user, tasks=2):
+        super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user, num_teaching_tasks=tasks-1, num_testing_tasks=1)
+        
+        #self.init_html_lock = {user: False}
+        #self.init_html_lock = {user: False}
+        self.init(user)
+
+    def init(self, user):
+        #self.unity_lock = {user : False}
+        #self.html_lock = {user : False}
+        # self.training_buttons[user] = button_menu.test
+        
+        # self.update_ui(user)
+
         self.event_dict['action'] = HtmlUnityTest.action.__func__
         self.event_dict['button'] = HtmlUnityTest.button.__func__
     
@@ -426,19 +466,6 @@ class HtmlUnity(Modality):
         self.init_html_lock = {user : False}
 
         self.training_buttons[user] = button_menu.test
-        self.update_ui(user)
-
-   
-class HtmlUnityTest(HtmlUnity):
-    def __init__(self, sio, user, tasks=2):
-        super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user, num_teaching_tasks=tasks-1, num_testing_tasks=1)
-        self.init(user)
-
-    def init(self, user):
-        self.unity_lock = {user : False}
-        self.html_lock = {user : False}
-        self.training_buttons[user] = button_menu.test
-        # {"identifier":"instructions","buttonText":"instructions"}, 
         self.update_ui(user)
 
 
@@ -474,8 +501,8 @@ class HtmlUnityTest(HtmlUnity):
 class HtmlUnityReward(HtmlUnity):
     def __init__(self, sio, teacher, student):
         super(HtmlUnityReward, self).__init__(sio=sio, teacher=teacher, student=student)
-        self.unity_lock[self.student] = False
-        self.html_lock[self.student] = False
+        #self.unity_lock[self.student] = False
+        #self.html_lock[self.student] = False
         self.training_buttons[self.student] = button_menu.reward_student
         self.update_ui()
 

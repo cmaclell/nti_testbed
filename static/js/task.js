@@ -48,7 +48,8 @@ var instruction_pages =
     
 var pattern_pages = {"HtmlUnityApprentice" : "instructions/$ROLE-training-interface-apprentice.html", 
             "HtmlUnityReward" : "instructions/$ROLE-training-interface-reward.html",
-            "HtmlUnityDemonstrate" : "instructions/$ROLE-training-interface-demonstrate.html"}
+            "HtmlUnityDemonstrate" : "instructions/$ROLE-training-interface-demonstrate.html",
+            "HtmlUnityTest" : "instructions/$ROLE-training-interface-demonstrate.html"}
 
 
 psiTurk.preloadPages(pages);
@@ -66,6 +67,7 @@ completehit = function(arg) {
 
 function start_task(){
     psiTurk.showPage('stage.html');
+    console.log("finished with instructions, starting experiment")
     socket.emit('ready', null);
     psiTurk.recordTrialData({
         'phase': 'task',
@@ -73,23 +75,43 @@ function start_task(){
     });
 }
 
+function short_cut(){
+    psiTurk.showPage('stage.html');
+    console.log("skipping instructions")
+    socket.emit('ready', null);
+    
+}
+
 do_instructions = function(rolepattern) {
+    short_cut();
+    return;
+
+
     role = rolepattern['role']
     pattern = rolepattern['pattern']
 
+    if(role == 'sandbox'){
+        role = 'teacher'
+    }
+
     console.log("instruction request for role: " + role + " in pattern: " + pattern);
     set_complete_hit_listener(role);
-
-    start_task();
-    return;
 
     psiTurk.recordUnstructuredData('pattern', pattern);
     psiTurk.recordUnstructuredData('role', role);
 
     instruction_pages[2] = pattern_pages[pattern]
 
-    for (var page in instruction_pages) {
-        page.replace("$ROLE", role)
+    if(role=="student"){
+        instruction_pages.splice(3, 1)
+
+    }
+
+
+    for(let i=0, size=instruction_pages.length; i<size; i++){
+    //for (var page in instruction_pages) {
+        instruction_pages[i] = instruction_pages[i].replace("$ROLE", role)
+        console.log(instruction_pages[i])
     }
 
     psiTurk.preloadPages(instruction_pages);
@@ -215,7 +237,7 @@ function set_complete_hit_listener(role) {
 $(window).load(function() {
     
     socket = io.connect("ws://" + window.location.host); 
-    
+    console.log("window load")
     
 
     socket.on('instructions', function(rolepattern) {
@@ -235,12 +257,14 @@ $(window).load(function() {
 
     socket.emit('join', {
         'id': uniqueId,
-        'first': true
+        'source': 'html',
+        'first' : 'true'
     });
 
     socket.on('connect', function() {
     socket.emit('join', {
-        'id': uniqueId
+        'id': uniqueId,
+        'source': 'html'
     });
 
    
