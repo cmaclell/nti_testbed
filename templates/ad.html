@@ -92,7 +92,9 @@
 							    <div class="alert alert-warning">
                                     <strong>All participants are required to
                                         have a modern web browser</strong>,
-                                    such as Chrome, Safari, Edge, or Firefox.
+                                        such as Chrome, Safari, Edge, or Firefox
+                                        with <strong>WebGL support
+                                        enabled</strong>.
 							    </div>
 
                                 <div class="alert alert-danger">
@@ -125,8 +127,7 @@
 							    <p>
                                     By clicking the following URL link, you
                                     will be taken to the experiment, including
-                                    the informed consent agreement and complete
-                                    instructions.
+                                    the informed consent agreement and instructions.
 							    </p>
 							    <script>
 									function openwindow() {
@@ -138,10 +139,40 @@
                                     <strong>Warning</strong>: Please disable pop-up
                                     blockers before continuing.
 							    </div>
-							    
-						    	<button type="button" class="btn btn-primary btn-lg" onClick="openwindow();">
-                                    Begin Experiment
-								</button>
+
+
+                                <div id="compatible_result">
+                                </div>
+
+		                        <script src="/static/lib/jquery-min.js" type="text/javascript"> </script>
+		                        <script src="/static/js/modernizr-custom.js" type="text/javascript"></script>
+                                <script>
+                                    $(function(){
+                                        var compatible = true;
+
+                                        if (!Modernizr.webgl) {
+                                            compatible = false;
+                                            $('#compatible_result').append('<div class="alert alert-danger"> <strong>No WebGL Support</strong>: Your browser does not support WebGL.</div>');
+                                        }
+
+                                        if (!Modernizr.websockets){
+                                            compatible = false;
+                                            $('#compatible_result').append('<div class="alert alert-danger"> <strong>No WebSockets Support</strong>: Your browser does not support WebSockets.</div>');
+                                        }
+
+                                        if (!Modernizr.flexbox) {
+                                            compatible = false;
+                                            $('#compatible_result').append('<div class="alert alert-danger"> <strong>No FlexBox Support</strong>: Your browser does not support FlexBox layouts.</div>');
+                                        }
+
+                                        if (compatible){
+                                            $('#compatible_result').html('<button type="button" class="btn btn-primary btn-lg" onClick="openwindow();"> Begin Experiment </button>');
+                                        } else {
+                                            $('#compatible_result').append('<div class="alert alert-danger"> <strong>Your browser is not compatible</strong>: Sorry! You are unable to participate in this experiment. You can now close this page and return to Amazon\'s Mechanical Turk.</div>');
+                                        }
+
+                                    });
+                                </script>
 
 
 							{% endif %}

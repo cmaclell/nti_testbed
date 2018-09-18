@@ -65,12 +65,15 @@ completehit = function(arg) {
 }
 
 function start_task(){
+    psiTurk.finishInstructions();
+    psiTurk.taskdata.set('instructions_done', true);
     psiTurk.showPage('stage.html');
     socket.emit('ready', null);
     psiTurk.recordTrialData({
         'phase': 'task',
         'status': 'start'
     });
+    psiTurk.saveData();
 }
 
 do_instructions = function(rolepattern) {
@@ -80,22 +83,43 @@ do_instructions = function(rolepattern) {
     console.log("instruction request for role: " + role + " in pattern: " + pattern);
     set_complete_hit_listener(role);
 
-    start_task();
-    return;
-
-    psiTurk.recordUnstructuredData('pattern', pattern);
     psiTurk.recordUnstructuredData('role', role);
+    psiTurk.recordUnstructuredData('pattern', pattern);
+    psiTurk.saveData();
 
     instruction_pages[2] = pattern_pages[pattern]
 
     for (var page in instruction_pages) {
-        page.replace("$ROLE", role)
+        instruction_pages[page] = instruction_pages[page].replace("$ROLE", role);
+        // page.replace("$ROLE", role)
     }
 
     psiTurk.preloadPages(instruction_pages);
     psiTurk.doInstructions(instruction_pages, function() {
             start_task();
     });
+
+    // if (role == "sandbox") {
+    //     psiTurk.preloadPages(teacher_instruction_pages);
+    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
+
+    // if (role == "student") {
+    //     psiTurk.preloadPages(student_instruction_pages);
+    //     psiTurk.doInstructions(student_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
+
+    // if (role == "teacher") {
+    //     psiTurk.preloadPages(teacher_instruction_pages);
+    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
+    //         start_task();
+    //     });
+    // }
+
 }
 
 
@@ -145,6 +169,8 @@ function set_complete_hit_listener(role) {
                 psiTurk.recordUnstructuredData(this.name, this.value);
             });
 
+            psiTurk.saveData();
+
         };
 
         prompt_resubmit = function() {
@@ -187,6 +213,7 @@ function set_complete_hit_listener(role) {
             'phase': 'postquestionnaire',
             'status': 'start'
         });
+        psiTurk.saveData();
 
         // psiTurk.completeHIT()
         $("#next").click(function() {
@@ -216,14 +243,21 @@ $(window).load(function() {
     
     socket = io.connect("ws://" + window.location.host); 
     
-    
+    psiTurk.showPage('stage.html');
 
-    socket.on('instructions', function(rolepattern) {
-        do_instructions(rolepattern)
+    socket.on('instructions', function(data) {
+        do_instructions(data);
+        //do_instructions(role)
     })
-   
+
+    // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
     socket.on('refresh', function(rolepattern) {
-        do_instructions(rolepattern);
+        if (psiTurk.taskdata.get('instructions_done') == true){
+            psiTurk.showPage('stage.html');
+        }
+        else{
+            do_instructions(rolepattern);
+        }
     })
 
     socket.on('sleep_callback', async function(seconds) {
@@ -242,7 +276,5 @@ $(window).load(function() {
     socket.emit('join', {
         'id': uniqueId
     });
-
-   
 });
 });
