@@ -48,7 +48,8 @@ var instruction_pages =
     
 var pattern_pages = {"HtmlUnityApprentice" : "instructions/$ROLE-training-interface-apprentice.html", 
             "HtmlUnityReward" : "instructions/$ROLE-training-interface-reward.html",
-            "HtmlUnityDemonstrate" : "instructions/$ROLE-training-interface-demonstrate.html"}
+            "HtmlUnityDemonstrate" : "instructions/$ROLE-training-interface-demonstrate.html",
+            "HtmlUnityTest" : "instructions/$ROLE-training-interface-demonstrate.html"}
 
 
 psiTurk.preloadPages(pages);
@@ -65,61 +66,56 @@ completehit = function(arg) {
 }
 
 function start_task(){
-    psiTurk.finishInstructions();
-    psiTurk.taskdata.set('instructions_done', true);
     psiTurk.showPage('stage.html');
     socket.emit('ready', null);
     psiTurk.recordTrialData({
         'phase': 'task',
         'status': 'start'
     });
-    psiTurk.saveData();
+}
+
+function short_cut(){
+    psiTurk.showPage('stage.html');
+    console.log("skipping instructions")
+    socket.emit('ready', null);
+    
 }
 
 do_instructions = function(rolepattern) {
     role = rolepattern['role']
     pattern = rolepattern['pattern']
 
+    if(role == 'sandbox'){
+        role = 'teacher'
+    }
+
     console.log("instruction request for role: " + role + " in pattern: " + pattern);
     set_complete_hit_listener(role);
 
-    psiTurk.recordUnstructuredData('role', role);
+    start_task();
+    return;
+
     psiTurk.recordUnstructuredData('pattern', pattern);
-    psiTurk.saveData();
+    psiTurk.recordUnstructuredData('role', role);
 
     instruction_pages[2] = pattern_pages[pattern]
 
-    for (var page in instruction_pages) {
-        instruction_pages[page] = instruction_pages[page].replace("$ROLE", role);
-        // page.replace("$ROLE", role)
+    if(role=="student"){
+        instruction_pages.splice(3, 1)
+
+    }
+
+
+    for(let i=0, size=instruction_pages.length; i<size; i++){
+    //for (var page in instruction_pages) {
+        instruction_pages[i] = instruction_pages[i].replace("$ROLE", role)
+        console.log(instruction_pages[i])
     }
 
     psiTurk.preloadPages(instruction_pages);
     psiTurk.doInstructions(instruction_pages, function() {
             start_task();
     });
-
-    // if (role == "sandbox") {
-    //     psiTurk.preloadPages(teacher_instruction_pages);
-    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
-    //         start_task();
-    //     });
-    // }
-
-    // if (role == "student") {
-    //     psiTurk.preloadPages(student_instruction_pages);
-    //     psiTurk.doInstructions(student_instruction_pages, function() {
-    //         start_task();
-    //     });
-    // }
-
-    // if (role == "teacher") {
-    //     psiTurk.preloadPages(teacher_instruction_pages);
-    //     psiTurk.doInstructions(teacher_instruction_pages, function() {
-    //         start_task();
-    //     });
-    // }
-
 }
 
 
@@ -169,8 +165,6 @@ function set_complete_hit_listener(role) {
                 psiTurk.recordUnstructuredData(this.name, this.value);
             });
 
-            psiTurk.saveData();
-
         };
 
         prompt_resubmit = function() {
@@ -213,7 +207,6 @@ function set_complete_hit_listener(role) {
             'phase': 'postquestionnaire',
             'status': 'start'
         });
-        psiTurk.saveData();
 
         // psiTurk.completeHIT()
         $("#next").click(function() {
@@ -243,21 +236,14 @@ $(window).load(function() {
     
     socket = io.connect("ws://" + window.location.host); 
     
-    psiTurk.showPage('stage.html');
+    
 
-    socket.on('instructions', function(data) {
-        do_instructions(data);
-        //do_instructions(role)
+    socket.on('instructions', function(rolepattern) {
+        do_instructions(rolepattern)
     })
-
-    // socket.on('refresh', function(arg) { psiTurk.showPage('stage.html'); })
+   
     socket.on('refresh', function(rolepattern) {
-        if (psiTurk.taskdata.get('instructions_done') == true){
-            psiTurk.showPage('stage.html');
-        }
-        else{
-            do_instructions(rolepattern);
-        }
+        do_instructions(rolepattern);
     })
 
     socket.on('sleep_callback', async function(seconds) {
@@ -269,12 +255,16 @@ $(window).load(function() {
 
     socket.emit('join', {
         'id': uniqueId,
-        'first': true
+        'source': 'html',
+        'first' : 'true'
     });
 
     socket.on('connect', function() {
     socket.emit('join', {
-        'id': uniqueId
+        'id': uniqueId,
+        'source': 'html'
     });
+
+   
 });
 });

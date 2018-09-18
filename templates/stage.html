@@ -34,7 +34,8 @@
         var finalIdString = workerIdString + ":" + assignmentIdString
 
         socket.emit('join', {
-            'id': finalIdString
+            'id': finalIdString,
+            'source' : 'stage'
         });
 
         id = finalIdString;

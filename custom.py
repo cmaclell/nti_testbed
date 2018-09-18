@@ -92,31 +92,40 @@ def disconnect(sid):
 def join(sid, data):
     # assign socket id to psiturk 
     print("join request from " + str(data))
-    room = data['id']
+    room = data.get('id', 'none')
     sio.enter_room(sid, room)
 
     #sio.emit("doNotWaitForAction", room=room)
     sio.emit("unlockChatBox", room=room)
     #room=self.student)
     #sio.emit('unlock', room=room)
+
+    source = data.get('source', None)
+
+    
     
     # user is reconnecting
     busy = False
     if room in list(connections.values()):
         if room in games:
             if not games[room].finished[room]:
-
-                # probably not the best way of doing this
-                if 'first' not in data:
-                    games[room].read_instructions[room] = True
-
-                #handle case of refreshing the page
-                if 'first' in data and games[room].read_instructions[room]:
+                if 'source' == 'html' or 'source' == 'stage':
                     arg = {"role" : games[room].role_string(room), "pattern" : games[room].__class__.__name__}
-                    sio.emit("refresh", arg, room=room)
+                    sio.emit("instructions", arg, room=room)
 
-                games[room].reconnect(room)
+                if 'source' == 'unity':
+                    games[room].reconnect(room)
+
                 busy = True
+                #if 'first' not in data:
+                    #games[room].read_instructions[room] = True
+
+               
+                #if 'first' in data and games[room].read_instructions[room]:
+                    #arg = {"role" : games[room].role_string(room), "pattern" : games[room].__class__.__name__}
+                    #sio.emit("refresh", arg, room=room)
+                
+                
                 
                 
     # user is new
@@ -140,12 +149,21 @@ def sleep_callback(sid, data):
 
 @sio.on("ready")
 def ready(sid, data):
-    print("received ready message ##")
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
-    if game is not None and game.initial_state is None:
+    if game is not None and game.idle:
+        
         game.new_task()
+
+@sio.on("gameStateRevert")
+def revert(sid, data):
+    print("received revert message")
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
+
+    if game is not None:
+        game.revert(sid, data)
 
 
 # UNITY WEBSOCKET API ENDPOINTS
@@ -166,8 +184,8 @@ def action(sid, data):
     game = games.get(uid, None)
 
     if game is not None:
-        game.current_state = data['prior state']
-        game.prev_state = data['prior state']
+        #game.current_state = data['prior state']
+        #game.prev_state = data['prior state']
         game.event(uid, event_type='action', event_data=data)
 
 
@@ -188,22 +206,20 @@ def initialState(sid, data):
    
 
     if game is not None:
-        
-            #print("STUDENT INITIAL STATE "  + str(data))
-            # game.event(uid, event_type='set_initial_state', event_data=data)
-            # game.initial_state = data
-            # sio.emit('load', game.initial_state, room=game.teacher)
-        game.event(uid, event_type='initial_state', event_data=data)
+        pass
+        game.set_initial_state(uid, data)
+        #game.event(uid, event_type='initial_state', event_data=data)
 
 @sio.on('gameState')
 @exception
 def gameState(sid, data):
+    
     #print("gameState: " + str(data))
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
     if game is not None:
-        game.event(uid, event_type='game_state', event_data=data)
+        game.final_state(data)
 
 
 
@@ -273,12 +289,14 @@ def onTrainingButtonPress(sid, data):
 
 def testing_user(uid):
     new_game = pattern.HtmlUnityTest(sio=sio, user=uid, tasks=100)
+    #new_game.training_levels = []
+
     sio.emit("sendTrainingMessage", "* Entering sandbox mode.", room=uid)
     games[uid] = new_game
     arg = {"role" : games[uid].role_string(uid), "pattern" : new_game.__class__.__name__}
     sio.emit("instructions", arg, room=uid)
 
-        
+    new_game.new_task()
 
 ### MODALITY LOGIC ### 
 def register_user(uid):

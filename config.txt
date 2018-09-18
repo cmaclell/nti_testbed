@@ -7,9 +7,10 @@ us_only = false
 approve_requirement = 95
 contact_email_on_error = aybabtu107@gmail.com
 ad_group = apprentice
-psiturk_keywords = whoops
+psiturk_keywords = learning, psychology
 organization_name = st
 browser_exclude_rule = MSIE, mobile, tablet
+allow_repeats = true
 
 [Database Parameters]
 database_url = sqlite:///participants.db
@@ -18,13 +19,13 @@ table_name = apprentice
 [Server Parameters]
 host = 0.0.0.0
 port = 5000
-cutoff_time = 30
+cutoff_time = 60
 logfile = server.log
 loglevel = 1
 debug = true
-login_username = CHANGETHIS
-login_pw = CHANGETHISTOO
-threads = auto
+login_username = soartech
+login_pw = soartech88
+threads = 1
 
 [Task Parameters]
 single_player = true
