@@ -92,7 +92,9 @@
 							    <div class="alert alert-warning">
                                     <strong>All participants are required to
                                         have a modern web browser</strong>,
-                                    such as Chrome, Safari, Edge, or Firefox.
+                                        such as Chrome, Safari, Edge, or Firefox
+                                        with <strong>WebGL support
+                                        enabled</strong>.
 							    </div>
 
                                 <div class="alert alert-danger">
@@ -138,10 +140,29 @@
                                     <strong>Warning</strong>: Please disable pop-up
                                     blockers before continuing.
 							    </div>
-							    
-						    	<button type="button" class="btn btn-primary btn-lg" onClick="openwindow();">
-                                    Begin Experiment
-								</button>
+
+
+                                <div id="webgl_result">
+                                </div>
+
+                                <script>
+                                    window.addEventListener("load", function() {
+                                    var result = document.querySelector("#webgl_result");
+                                    // Create canvas element. The canvas is not added to the
+                                    // document itself, so it is never displayed in the
+                                    // browser window.
+                                    var canvas = document.createElement("canvas");
+                                    // Get WebGLRenderingContext from canvas element.
+                                    var gl = canvas.getContext("webgl")
+                                      || canvas.getContext("experimental-webgl");
+                                    // Report the result.
+                                    if (gl && gl instanceof WebGLRenderingContext) {
+                                        result.innerHTML = '<button type="button" class="btn btn-primary btn-lg" onClick="openwindow();"> Begin Experiment </button>';
+                                    } else {
+                                        result.innerHTML = "Sorry, you are unable to participate in this experiment because your browser does not support WebGL.";
+                                    }
+                                    }, false);
+                                </script>
 
 
 							{% endif %}
