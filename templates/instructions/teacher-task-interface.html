@@ -26,34 +26,26 @@
         <h2>Possible Actions</h2>
         <p>
             The interface is for controlling a simple simulated robot that can
-            sense and act in its environment. There are five possible actions
+            sense and act in its environment. There are three possible actions
             in this interface:
             <ul>
                 <li>
-                    <strong>Clicking on the screen</strong> sets waypoints for
-                    the robot.
+                    <strong>Clicking on the screen</strong> sets a waypoints for
+                    the robot to move to. As the robot moves it actively
+                    senses its environment and updates its model, as reflected
+                    by the white dots, which correspond to locations where its
+                    sensors detected a wall or obstacle, and the colored
+                    shapes, which correspond to objects in the robot has
+                    detected in the environment.
                 </li>
                 <li>
-                    <strong>Pressing the "Action 1" button</strong> makes the
-                    robot follow the active waypoints. As the robot moves it
-                    actively senses its environment and updates its model, as
-                    reflected by the white dots, which correspond to locations
-                    where its sensors detected a wall or obstacle, and the
-                    colored shapes, which correspond to objects in the robot
-                    has detected in the environment.
-                </li>
-                <li>
-                    <strong>Pressing the "Action 2" button</strong> deletes all
-                    the active waypoints.
-                </li>
-                <li>
-                    <strong>Pressing the "Action 3" button</strong> while over
+                    <strong>Pressing the "Action 1" button</strong> while over
                     an object (the colored shapes) makes the robot pickup the
                     object and put it in its inventory. Only one object can be
                     held at a time.
                 </li>
                 <li>
-                    <strong>Pressing the "Action 4" button</strong> will drop
+                    <strong>Pressing the "Action 2" button</strong> will drop
                     an object that is currently in the robot's inventory.
                 </li>
             </ul>
