@@ -413,7 +413,10 @@ class HtmlUnity(Modality):
                 self.emit("complete_hit", "args", room=self.teacher)
                 self.finished[self.teacher] = True
                 #self.test_mode(self.student)
-                HtmlUnityTest.init(self, self.student)
+                HtmlUnityTest.init.__func__(self, self.student)
+
+                #x = HtmlUnityTest().init(self.student)
+                #x.init()
                 #self.init(self.student)
                 self.testing = True
 
@@ -458,9 +461,14 @@ class HtmlUnityTest(HtmlUnity):
 
         self.event_dict['action'] = HtmlUnityTest.action.__func__
         self.event_dict['button'] = HtmlUnityTest.button.__func__
+
+        print("init called on " + str(type(self)))
     
         self.init_unity_lock = {user : False}
         self.init_html_lock = {user : False}
+
+        self.unity_lock = self.init_unity_lock
+        self.html_lock = self.init_html_lock
 
         self.training_buttons[user] = button_menu.test
         self.update_ui(user)
