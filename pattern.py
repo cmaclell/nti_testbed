@@ -223,6 +223,7 @@ class HtmlUnity(Modality):
         #self.emit("instructions", arg, room=actor)
 
         if self.current_state is not None:
+            print(str(self) + " attempting to load " + str(hash(frozenset(self.current_state))) + " to " + self.role_string(actor))
             self.emit('load', self.current_state, room=actor)
 
         self.waiting = False
@@ -291,46 +292,41 @@ class HtmlUnity(Modality):
         self.update_ui()
 
     def game_state(self, actor, state):
-        if state is not None:
-            if self.initial_state is None:
-                pass
-                #self.set_initial_state(actor, state)
-            else:
-                pass
-                #self.current_state = state
+        raise NotImplementedError
 
     # can be overwritten
     def set_initial_state(self, actor, state):
         """ handles an initial_state coming from an actor, or call with predefined level to """
         
-        if self.initial_state is None:
+        #if self.initial_state is None:
+        self.initial_state = state
 
-            new_task = Task(init_state=state)
-            session_record = db_session.query(Session).filter(Session.session_id==self.session_id).one()
-            session_record.tasks.append(new_task)
-            
+        new_task = Task(init_state=state)
+        session_record = db_session.query(Session).filter(Session.session_id==self.session_id).one()
+        session_record.tasks.append(new_task)
+        
 
-            new_task.student = self.student #db_session.query(User).filter(User.user_id == self.student).one()
-            new_task.teacher = self.teacher #db_session.query(User).filter(User.user_id == self.teacher).one()
-            new_task.init_state = json.dumps(state)
+        new_task.student = self.student #db_session.query(User).filter(User.user_id == self.student).one()
+        new_task.teacher = self.teacher #db_session.query(User).filter(User.user_id == self.teacher).one()
+        new_task.init_state = json.dumps(state)
 
-            db_session.commit()
-            print("creating task with id: " + str(new_task.task_id))
-            self.current_task_id = new_task.task_id
-            
-            # first initial state submitted is chosen 
-            self.initial_state = state
-            self.current_state = state
-            self.prev_state = state
-            #self.state_stack=[state]
-            self.unity_lock = self.init_unity_lock
-            self.html_lock = self.init_html_lock
+        db_session.commit()
+        print("creating task with id: " + str(new_task.task_id))
+        self.current_task_id = new_task.task_id
+        
+        # first initial state submitted is chosen 
+        self.current_state = state
+        self.prev_state = state
+        #self.state_stack=[state]
+        self.unity_lock = self.init_unity_lock
+        self.html_lock = self.init_html_lock
 
-            self.emit('load', self.current_state, room=actor)
-            self.emit('load', self.current_state, room=self.partner(actor))
-        else:
-            self.emit('load', self.current_state, room=actor)
+        self.emit('load', self.current_state, room=actor)
+        self.emit('load', self.current_state, room=self.partner(actor))
+        #else:
+            #self.emit('load', self.current_state, room=actor)
         self.update_ui(actor)
+        self.update_ui(self.partner(actor))
         
     def sleep_callback(self, actor, seconds_remaining=3):
         """ terrible, terrible workaround for being able to sleep """ 
@@ -341,7 +337,7 @@ class HtmlUnity(Modality):
         if seconds_remaining <= 0:
             self.waiting=False
             if self.initial_state is None:
-
+                self.initial_state = {'set': True}
                 if self.testing:
                     levels = self.testing_levels
                 else:
@@ -417,7 +413,8 @@ class HtmlUnity(Modality):
                 self.emit("complete_hit", "args", room=self.teacher)
                 self.finished[self.teacher] = True
                 #self.test_mode(self.student)
-                self.init(self.student)
+                HtmlUnityTest.init(self, self.student)
+                #self.init(self.student)
                 self.testing = True
 
         else:

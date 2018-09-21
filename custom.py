@@ -109,11 +109,11 @@ def join(sid, data):
     if room in list(connections.values()):
         if room in games:
             if not games[room].finished[room]:
-                if 'source' == 'html' or 'source' == 'stage':
+                if source == 'html' or source == 'stage':
                     arg = {"role" : games[room].role_string(room), "pattern" : games[room].__class__.__name__}
                     sio.emit("instructions", arg, room=room)
 
-                if 'source' == 'unity':
+                if source == 'unity' or source == None:
                     games[room].reconnect(room)
 
                 busy = True
@@ -203,11 +203,9 @@ def initialState(sid, data):
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
-   
-
     if game is not None:
         pass
-        game.set_initial_state(uid, data)
+        #game.set_initial_state(uid, data)
         #game.event(uid, event_type='initial_state', event_data=data)
 
 @sio.on('gameState')

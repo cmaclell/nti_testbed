@@ -52,6 +52,9 @@ var pattern_pages = {"HtmlUnityApprentice" : "instructions/$ROLE-training-interf
             "HtmlUnityTest" : "instructions/$ROLE-training-interface-demonstrate.html"}
 
 
+var started_instructions = false
+var finished_instructions = false
+
 psiTurk.preloadPages(pages);
 
 log = function(data) {
@@ -66,6 +69,7 @@ completehit = function(arg) {
 }
 
 function start_task(){
+    finised_instructions = true
     psiTurk.showPage('stage.html');
     socket.emit('ready', null);
     psiTurk.recordTrialData({
@@ -82,6 +86,8 @@ function short_cut(){
 }
 
 do_instructions = function(rolepattern) {
+
+    started_instructions = true
     role = rolepattern['role']
     pattern = rolepattern['pattern']
 
@@ -239,7 +245,13 @@ $(window).load(function() {
     
 
     socket.on('instructions', function(rolepattern) {
-        do_instructions(rolepattern)
+        if(!started_instructions)
+        {
+            do_instructions(rolepattern)
+        }
+        if(finished_instructions){
+            start_task()
+        }
     })
    
     socket.on('refresh', function(rolepattern) {
