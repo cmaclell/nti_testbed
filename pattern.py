@@ -32,7 +32,7 @@ class HtmlUnity(Modality):
         #self.session = db_session.query(Session).filter(Session.session_id==new_session.session_id).one()
         
 
-        self.current_task_id = None
+        #self.current_task_id = None
     
         self.event_dict = {
                             'button': self.__class__.button, 
@@ -80,7 +80,7 @@ class HtmlUnity(Modality):
         self.stale = False
         self.last_action = None
         self.idle = True
-        self.prev_task_id = None
+        #self.prev_task_id = None
         self.testing = False
         #print("setting floor plan to " + str(self.student))
         
@@ -88,14 +88,12 @@ class HtmlUnity(Modality):
         #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.student)#oom=self.teacher)
         self.waiting = False
 
-    def revert(self, uid, state):
-        
-        
+    def revert(self, uid, state):  
         self.current_state = state
-        print(state)
         print("emitting revert to prior state")
-        self.emit("load", state, room=self.partner(uid))
-        self.emit("clearWaypoints", room=self.partner(uid))
+        if len(self.unity_lock) > 1:
+            self.emit("load", state, room=self.partner(uid))
+            self.emit("clearWaypoints", room=self.partner(uid))
 
         
 
@@ -116,8 +114,8 @@ class HtmlUnity(Modality):
         return "ROLE NOT DEFINED"
 
     #blocks
-    def playback(self, task_id, room, use_student=True, fast=False):
-        task = db_session.query(Task).filter(Task.task_id==task_id).one()
+    def playback(self, session_id, task_number, room, use_student=True, fast=False):
+        task = db_session.query(Task).filter(Task.session_id==session_id).filter(Task.task_number==task_number).one()
         user_room = task.student if use_student else task.teacher
         prev_time = task.timestamp
 
@@ -159,10 +157,11 @@ class HtmlUnity(Modality):
         if message[:8]=="playback":
             try:
                 s = message.split()
-                task_id = s[1]
-                self.playback(task_id=task_id, room=actor)
+                session_id = s[1]
+                task_number = s[2]
+                self.playback(session_id=session_id, task_number=task_number, room=actor)
             except:
-                print("error playing back task " + str(task_id))
+                print("error playing back task " + str(s[1] + "::" + s[2]))
                 traceback.print_exc()
             return
 
@@ -223,8 +222,10 @@ class HtmlUnity(Modality):
         #self.emit("instructions", arg, room=actor)
 
         if self.current_state is not None:
-            print(str(self) + " attempting to load " + str(hash(frozenset(self.current_state))) + " to " + self.role_string(actor))
+           
             self.emit('load', self.current_state, room=actor)
+        else: 
+            print("current state is none, no state to load")
 
         self.waiting = False
         self.update_ui(actor)
@@ -240,19 +241,23 @@ class HtmlUnity(Modality):
         #log emissions to current task in database for future analysis/playback
         if topic == 'load':
             argument['waypoints'] = {}
+            #print("emitting load of argument " + str(hash(argument)) + " to room " + str(room))
+            print("attempting to load " + str(hash(frozenset(argument))) + " to " + str(room))
 
 
-        if self.current_task_id is not None and topic != "sleep_callback":
+        if self.current_task >= 0 and topic != "sleep_callback":
             try:
                 argument_string = json.dumps(argument)
 
-                record = Emission(topic, argument_string, room)
+                record = Emission(topic, argument_string, room) #self.session_id, self.current_task, 
                 
-                task = db_session.query(Task).filter(Task.task_id==self.current_task_id).one()
-                task.emissions.append(record)
-                db_session.commit()
+                task = db_session.query(Task).filter(Task.session_id==self.session_id).filter(Task.task_number==self.current_task).first()
+                if task is not None:
+                    task.emissions.append(record)
+                    db_session.commit()
+
             except Exception as e:
-                print("problem logging emission: " + str(topic) + ": " + str(e) + " on task " + str(self.current_task_id))
+                print("problem logging emission: " + str(topic) + ": " + str(e) + " on task " + str(self.session_id) + "::" + str(self.current_task))
 
         if argument is None:
             self.sio.emit(topic, room=room)
@@ -300,8 +305,10 @@ class HtmlUnity(Modality):
         
         #if self.initial_state is None:
         self.initial_state = state
+        self.current_state = state 
+        print("level loaded, current state set: " + str(hash(frozenset(state))))
 
-        new_task = Task(init_state=state)
+        new_task = Task(session_id=self.session_id, task_number=self.current_task, init_state=state)
         session_record = db_session.query(Session).filter(Session.session_id==self.session_id).one()
         session_record.tasks.append(new_task)
         
@@ -311,22 +318,42 @@ class HtmlUnity(Modality):
         new_task.init_state = json.dumps(state)
 
         db_session.commit()
-        print("creating task with id: " + str(new_task.task_id))
-        self.current_task_id = new_task.task_id
+        print("creating task with id: " + str(new_task.session_id) + "::" + str(new_task.task_number))
+        #self.current_task_id = (BLAH)
         
         # first initial state submitted is chosen 
-        self.current_state = state
+        #self.current_state = state
         self.prev_state = state
         #self.state_stack=[state]
         self.unity_lock = self.init_unity_lock
         self.html_lock = self.init_html_lock
 
         self.emit('load', self.current_state, room=actor)
-        self.emit('load', self.current_state, room=self.partner(actor))
+        self.update_ui(actor)
+
+        if len(self.unity_lock) > 1:
+            self.emit('load', self.current_state, room=self.partner(actor))
+            self.update_ui(self.partner(actor))
         #else:
             #self.emit('load', self.current_state, room=actor)
-        self.update_ui(actor)
-        self.update_ui(self.partner(actor))
+        
+    def load_level(self, levels):
+        levelobj = None
+        while levelobj is None:
+            #self.level = random_pop(levels)
+            self.level = random.choice(levels)
+
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "stages", self.level)
+            
+            print("chose level path " + str(path) + " " + str(os.path.exists(path)))
+
+        
+            levelobj = pickle.load(open(path, 'rb'))
+            #print("levelobj: " + str(levelobj))
+            #print("hash " + str(hash(frozenset(levelobj))))
+        return levelobj
+            
+        
         
     def sleep_callback(self, actor, seconds_remaining=3):
         """ terrible, terrible workaround for being able to sleep """ 
@@ -344,18 +371,12 @@ class HtmlUnity(Modality):
                     levels = self.training_levels
 
                 if len(levels) > 0:
-                    self.level = random_pop(levels)
-     
-                    print("chose level " + self.level)
-
-                    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "stages", self.level)
-                    
-                    levelobj = pickle.load(open(path, 'rb'))
-                    
+                    levelobj = self.load_level(levels)
                     self.set_initial_state(actor, levelobj)
 
-                    task = db_session.query(Task).filter(Task.task_id==self.current_task_id).one()
-                    task.level_path = json.dumps(level)
+                    print("dumping init task info to: " + str(self.session_id) + "::" + str(self.current_task))
+                    task = db_session.query(Task)
+                    task.level_path = self.level
                     db_session.commit()
 
 
@@ -373,27 +394,33 @@ class HtmlUnity(Modality):
 
     def final_state(self, data):
         try:
-            prev_task = db_session.query(Task).filter(Task.task_id==self.prev_task_id).one()
-            prev_task.final_state = json.dumps(data)
-            db_session.commit()
-            print("saved game state to " + str(self.prev_task_id))
+            if self.prev_state is not None:
+                prev_task_record = db_session.query(Task).filter(Task.session_id==self.session_id).filter(Task.task_number==self.prev_task).first()
+                if prev_task_record is not None:
+                    print("dumping final task info to: " + str(self.session_id) + "::" + str(self.prev_task))
+                    prev_task_record.final_state = json.dumps(data)
+                    db_session.commit()
+                    self.prev_task = None
+                #print("saved game state to " + str(self.prev_task_id))
         except Exception as e:
             print("error storing final state" + str(e))
 
     def new_task(self):
         self.idle = False
+        self.prev_task = self.current_task
         self.current_task += 1
         self.initial_state = None
         self.current_state = None
         actors = []
 
-        #print("starting new task " + str(self.current_task) + " prev task id " + str(self.current_task_id))
+        print("starting new task " + str(self.current_task))
         
         if self.current_task > 0:
             for key in self.finished:
                 if not self.finished[key]:
                     print("requesting final game state")
-                    self.prev_task_id = self.current_task_id
+                    #self.prev_task_id = self.current_task_id
+
                     self.emit("getGameState", room=key)
         
         if self.current_task >= self.num_teaching_tasks + self.num_testing_tasks:

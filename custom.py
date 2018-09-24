@@ -140,6 +140,7 @@ def join(sid, data):
     connections[sid] = room
     
 @sio.on("sleep_callback")
+@exception
 def sleep_callback(sid, data):
     uid = connections.get(sid, None)
     game = games.get(uid, None)
@@ -148,6 +149,7 @@ def sleep_callback(sid, data):
         game.sleep_callback(uid, seconds_remaining=data)
 
 @sio.on("ready")
+@exception
 def ready(sid, data):
     uid = connections.get(sid, None)
     game = games.get(uid, None)
@@ -157,6 +159,7 @@ def ready(sid, data):
         game.new_task()
 
 @sio.on("gameStateRevert")
+@exception
 def revert(sid, data):
     print("received revert message")
     uid = connections.get(sid, None)
@@ -310,11 +313,12 @@ def register_user(uid):
         if random.random() > .5:
             a, b = b, a
 
+
         #todo: weight pattern selection sample by quanity of type in database, if needed
         pattern_types = [pattern.HtmlUnityDemonstrate, pattern.HtmlUnityApprentice, pattern.HtmlUnityReward]
         new_game = random.choice(pattern_types)(sio=sio, teacher=a, student=b)
 
-
+        print("created new game of type " + str(new_game.__class__.__name__))
         
         for user in [a, b]:
             games[user] = new_game

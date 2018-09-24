@@ -1,5 +1,5 @@
 from psiturk.db import Base, db_session, init_db
-from sqlalchemy import or_, Column, Integer, String, DateTime, Boolean, Float, Text, ForeignKey, func, event
+from sqlalchemy import or_, Column, Integer, String, DateTime, Boolean, Float, Text, ForeignKey, func, event, ForeignKeyConstraint
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.orderinglist import ordering_list
 #from sqlalchemy.ext.compiler import compiles
@@ -23,14 +23,16 @@ class Session(Base):
 
 class Task(Base):
     __tablename__ ='task'
-    task_id = Column(Integer, primary_key=True)
+    session_id = Column(Integer, ForeignKey('session.session_id'), primary_key=True)
+    task_number = Column(Integer, primary_key=True)
+    
     timestamp = Column(DateTime, nullable=False)
     last_active = Column(DateTime, nullable=True, onupdate=func.now())
     init_state = Column(Text)
     final_state = Column(Text)
     level_path = Column(String(80))
 
-    session_id = Column(Integer, ForeignKey('session.session_id'), nullable=True)
+    
     session = relationship("Session", uselist=True, foreign_keys=[session_id], post_update=True)
     emissions = relationship("Emission", order_by="Emission.timestamp", collection_class=ordering_list('timestamp'))
 
@@ -39,10 +41,12 @@ class Task(Base):
     #student = relationship("User", uselist=False, post_update=True)
     #teacher = relationship("User", uselist=False, post_update=True)
 
-    def __init__(self, init_state=""):
+    def __init__(self, session_id, task_number, init_state=""):
         init_state = json.dumps(init_state)
         self.init_state=init_state
         self.timestamp = datetime.now()
+        self.session_id = session_id
+        self.task_number = task_number
 
 class User(Base):
     __tablename__ = 'user'
@@ -51,16 +55,15 @@ class User(Base):
     ip = Column(String(80))
     role = Column(String(20))
 
-    task_id = Column(Integer, ForeignKey(Task.task_id), nullable=True)
-    task = relationship("Task", uselist=False, foreign_keys=[task_id], post_update=True)
+    #task_id = Column(Integer, ForeignKey(Task.task_id), nullable=True)
+    #task = relationship("Task", uselist=False, foreign_keys=[task_id], post_update=True)
 
     last_active = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
-    def __init__(self, uid, ip='unknown', task_id=None, role=None):
+    def __init__(self, uid, ip='unknown', role=None):
         self.user_id = uid
         self.ip = ip
         self.role = 'unassigned'
-        self.task_id = None
 
 class Emission(Base):
     """ events from the user """
@@ -68,8 +71,12 @@ class Emission(Base):
     emit_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False)
 
-    task_id = Column(Integer, ForeignKey('task.task_id'), nullable=True)
-    task = relationship("Task", uselist=True, foreign_keys=[task_id], post_update=True)
+    session_id = Column(Integer, nullable=False) #ForeignKey('Task.session_id'))
+    task_number = Column(Integer, nullable=False) #ForeignKey('Task.task_number'))
+
+
+    #task_id = Column(Integer, ForeignKey('task.task_id'), nullable=True)
+    task = relationship("Task", uselist=True, foreign_keys=[session_id, task_number], post_update=True)
 
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=True)
     user = relationship("User", uselist=False, foreign_keys=[user_id], post_update=True)
@@ -78,7 +85,12 @@ class Emission(Base):
     data = Column(Text) 
     room = Column(String(80))
 
-    def __init__(self, topic, data, room):
+    __table_args__ = (ForeignKeyConstraint([session_id, task_number], [Task.session_id, Task.task_number]),)
+
+    def __init__(self,  topic, data, room):
+        #session_id, task_number,
+        #self.session_id = session_id
+        #self.task_number = task_number
         self.topic = topic
         self.data = data
         self.room = room
