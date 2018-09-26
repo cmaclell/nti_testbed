@@ -799,7 +799,14 @@ class HtmlUnityApprentice(HtmlUnity):
 if __name__ == "__main__":
 
     
-    HtmlUnityReward(sio="sio", teacher="teacher", student="student")
+    h = HtmlUnity(sio="sio", teacher="teacher", student="student")
+    tl = h.training_levels
+
+    js = [pickle.load(open(x, 'rb')) for x in tl]
+
+    for i in range(len(tl)):
+        print(tl[i])
+        print(str(js[i]))
     #HtmlUnityDemonstrate(sio="sio", teacher="teacher", student="student")
 
 
