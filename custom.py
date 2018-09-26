@@ -3,6 +3,7 @@ from jinja2 import TemplateNotFound
 from functools import wraps
 from sqlalchemy import or_, and_
 from sqlalchemy.orm.exc import NoResultFound
+from redisworks import Root
 
 from psiturk.psiturk_config import PsiturkConfig
 from psiturk.experiment_errors import ExperimentError
@@ -37,10 +38,11 @@ config = PsiturkConfig()
 config.load_config()
 myauth = PsiTurkAuthorization(config)  # if you want to add a password protect route use this
 
+root = Root(host='localhost')
 
-connections = {} # map: socket-id -> user-id
-games = {} # map: user-id -> task object (both user-ids)
-queue = [] # list of unmatched user-ids
+root.connections = {} # map: socket-id -> user-id
+root.games = {} # map: user-id -> task object (both user-ids)
+root.queue = [] # list of unmatched user-ids
 
 
 ### SETUP/TEARDOWN ###
@@ -106,7 +108,7 @@ def join(sid, data):
     
     # user is reconnecting
     busy = False
-    if room in list(connections.values()):
+    if room in list(root.connections.values()):
         if room in games:
             if not games[room].finished[room]:
                 if source == 'html' or source == 'stage':
@@ -137,12 +139,12 @@ def join(sid, data):
 
     
 
-    connections[sid] = room
+    root.connections[sid] = room
     
 @sio.on("sleep_callback")
 @exception
 def sleep_callback(sid, data):
-    uid = connections.get(sid, None)
+    uid = root.connections.get(sid, None)
     game = games.get(uid, None)
 
     if game is not None:
@@ -151,7 +153,7 @@ def sleep_callback(sid, data):
 @sio.on("ready")
 @exception
 def ready(sid, data):
-    uid = connections.get(sid, None)
+    uid = root.connections.get(sid, None)
     game = games.get(uid, None)
 
     if game is not None and game.idle:
@@ -162,11 +164,11 @@ def ready(sid, data):
 @exception
 def revert(sid, data):
     print("received revert message")
-    uid = connections.get(sid, None)
-    game = games.get(uid, None)
+    uid = root.connections.get(sid, None)
+    game = root.games.get(uid, None)
 
     if game is not None:
-        game.revert(sid, data)
+        root.game.revert(sid, data)
 
 
 # UNITY WEBSOCKET API ENDPOINTS
@@ -183,8 +185,8 @@ def action(sid, data):
     reset the scene back to how it was before the action was taken.
     """
     data['arguments']['alreadyPlayed'] = True if data['arguments']['alreadyPlayed'] == 'True' else False
-    uid = connections.get(sid, None)
-    game = games.get(uid, None)
+    uid = root.connections.get(sid, None)
+    game = root.games.get(uid, None)
 
     if game is not None:
         #game.current_state = data['prior state']
@@ -203,8 +205,8 @@ def initialState(sid, data):
     Gives the game state that can be fed into load() to make the game state be
     how it is initially
     """
-    uid = connections.get(sid, None)
-    game = games.get(uid, None)
+    uid = root.connections.get(sid, None)
+    game = root.games.get(uid, None)
 
     if game is not None:
         pass
@@ -216,8 +218,8 @@ def initialState(sid, data):
 def gameState(sid, data):
     
     #print("gameState: " + str(data))
-    uid = connections.get(sid, None)
-    game = games.get(uid, None)
+    uid = root.connections.get(sid, None)
+    game = root.games.get(uid, None)
 
     if game is not None:
         game.final_state(data)
@@ -233,8 +235,8 @@ def endedAction(sid):
     it reconnects after it resets from the reset button. Gives the game state that can be fed into load() 
     to make the game state be how it is initially
     """
-    uid = connections.get(sid, None)
-    game = games.get(uid, None)
+    uid = root.connections.get(sid, None)
+    game = root.games.get(uid, None)
 
     if game is not None:
         if game.student == uid:
@@ -252,8 +254,8 @@ def getChatMessage(sid, data):
     send button next to the chat box. The text is in message, and the id is the id of the user gotten 
     from the psiturk id (the same id used in join as shown below)
     """
-    uid = connections.get(sid, None)
-    game = games.get(uid, None)
+    uid = root.connections.get(sid, None)
+    game = root.games.get(uid, None)
 
     new_game_commands = {"demonstrate": pattern.HtmlUnityDemonstrate,
                          "apprentice": pattern.HtmlUnityApprentice,
@@ -262,8 +264,8 @@ def getChatMessage(sid, data):
     if data['message'] in new_game_commands.keys():
         if game is not None:   
             new_game = new_game_commands[data['message']](game.sio, game.teacher, game.student)
-            games[game.teacher] = new_game
-            games[game.student] = new_game
+            root.games[game.teacher] = new_game
+            root.games[game.student] = new_game
             return
     
     if game is not None:
@@ -279,8 +281,8 @@ def onTrainingButtonPress(sid, data):
     was sent with the function getTrainingButtons(). The identifier is the identifier that was sent with 
     the button and the id is the id of the user gotten from the psiturk id (the same id used in join as shown below)
     """
-    uid = connections.get(sid, None)
-    game = games.get(uid, None)
+    uid = root.connections.get(sid, None)
+    game = root.games.get(uid, None)
 
     if game is not None:
         game.event(uid, event_type='button', event_data=data['identifier'])
@@ -290,6 +292,8 @@ def onTrainingButtonPress(sid, data):
 
 def testing_user(uid):
     new_game = pattern.HtmlUnityTest(sio=sio, user=uid, tasks=100)
+    new_game.training_levels = []
+    new_game.testing_levels = []
     #new_game.training_levels = []
 
     sio.emit("sendTrainingMessage", "* Entering sandbox mode.", room=uid)
@@ -302,6 +306,7 @@ def testing_user(uid):
 ### MODALITY LOGIC ### 
 def register_user(uid):
     #todo: validate user (how?)
+    queue = root.queue
     if uid not in queue:
         queue.append(uid)
 
@@ -333,7 +338,8 @@ def register_user(uid):
 
     else:
         sio.emit("sendTrainingMessage", "* Waiting for a partner.", room=uid)
-  
+    root.queue = queue
+    
 if __name__=="__main__":
     # app = Flask(__name__)
     # app.register_blueprint(custom_code)

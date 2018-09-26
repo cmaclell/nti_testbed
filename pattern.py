@@ -42,14 +42,14 @@ class HtmlUnity(Modality):
                             #'game_state' : self.__class__.game_state
                         }
 
-        self.easy_levels = ['easy4_init.p', 'easy22_init.p', 'oneroom3_init.p', 'oneroom888_init.p']
-        self.medium_levels = ['normal_1_init.p', 'medium1_init.p', 'medium8_init.p', 'mediumnav1_init.p']
-        self.hard_levels = ['hard1_init.p', "hard2_init.p", "hard3_init.p", "hard4_init.p"]
+        self.levels={}
+        for difficulty in ['easy', 'medium', 'hard']:
+            path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "stages", difficulty)
+            self.levels[difficulty] = [os.path.join(path, file) for file in os.listdir(path)]
 
-        self.training_levels = [l for l in self.easy_levels]
-        self.testing_levels = [l for l in self.medium_levels]
-
-        self.good_levels = ['oneroom2_init.p']
+        
+        self.training_levels = [l for l in self.levels['easy']]
+        self.testing_levels = [l for l in self.levels['hard']]
 
         self.action_descriptions = {
                             'go': "move along current waypoints",
@@ -140,10 +140,12 @@ class HtmlUnity(Modality):
 
         #time.sleep(1)
         #self.sio.emit('load', json.loads(task.final_state), room=room)
+    def stage_file(self, name):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "stages", str(name) +  ".p")
+
 
     def chat(self, actor, message):
-        def stage_file(name):
-            return os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "stages", str(name) +  ".p")
+        
 
         if message[:4]=="emit":
             try:
@@ -168,7 +170,7 @@ class HtmlUnity(Modality):
         if message[:4]=="load":
             try:
                 s = message.split()
-                path = stage_file(s[1])
+                path = self.stage_file(s[1])
 
                 f = pickle.load(open(path, 'rb'))
                 self.current_state = f
@@ -189,8 +191,8 @@ class HtmlUnity(Modality):
         if message[:4]=="save":
             try:
                 s = message.split()
-                path = stage_file(s[1])
-                init_path = stage_file(s[1]+"_init")
+                path = self.stage_file(s[1])
+                init_path = self.stage_file(s[1]+"_init")
 
                 pickle.dump(self.current_state, open(path, 'wb+'))
                 pickle.dump(self.initial_state, open(init_path, 'wb+'))
@@ -209,6 +211,9 @@ class HtmlUnity(Modality):
         if message=="new":
             self.new_task()
             return
+
+        if message=='reset':
+            self.emit("reset", room=actor)
 
         self.emit('sendTrainingMessage', 'YOU: '+ message, room=actor)
         self.emit('sendTrainingMessage', 
@@ -342,8 +347,8 @@ class HtmlUnity(Modality):
         while levelobj is None:
             #self.level = random_pop(levels)
             self.level = random.choice(levels)
-
-            path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "stages", self.level)
+            path = self.level
+            #path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "stages", self.level)
             
             print("chose level path " + str(path) + " " + str(os.path.exists(path)))
 
@@ -379,7 +384,6 @@ class HtmlUnity(Modality):
                     task.level_path = self.level
                     db_session.commit()
 
-
                 else:
                     print("no levels to sample from, resetting instead")
                     self.emit("reset", room=actor)
@@ -406,6 +410,7 @@ class HtmlUnity(Modality):
             print("error storing final state" + str(e))
 
     def new_task(self):
+
         self.idle = False
         self.prev_task = self.current_task
         self.current_task += 1
