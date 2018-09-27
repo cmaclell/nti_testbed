@@ -47,9 +47,15 @@ class HtmlUnity(Modality):
             path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "stages", difficulty)
             self.levels[difficulty] = [os.path.join(path, file) for file in os.listdir(path)]
 
+        self.initialized = [False for _ in range(num_teaching_tasks + num_testing_tasks)]
         
         self.training_levels = [l for l in self.levels['easy']]
-        self.testing_levels = [l for l in self.levels['hard']]
+        self.testing_levels = [l for l in self.levels['medium']]
+
+        random.shuffle(self.training_levels), random.shuffle(self.testing_levels)
+
+        self.leveltups = [self.load_level(self.training_levels) for _ in range(num_teaching_tasks)]
+        self.leveltups.extend([self.load_level(self.testing_levels) for _ in range(num_testing_tasks)])
 
         self.action_descriptions = {
                             'go': "move along current waypoints",
@@ -82,6 +88,8 @@ class HtmlUnity(Modality):
         self.idle = True
         #self.prev_task_id = None
         self.testing = False
+        self.last_callback = 0
+        self.current_task_record = None
         #print("setting floor plan to " + str(self.student))
         
         #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.teacher)#room=self.student)
@@ -190,13 +198,14 @@ class HtmlUnity(Modality):
 
         if message[:4]=="save":
             try:
-                s = message.split()
-                path = self.stage_file(s[1])
-                init_path = self.stage_file(s[1]+"_init")
 
-                pickle.dump(self.current_state, open(path, 'wb+'))
+                s = message.split()
+                #path = self.stage_file(s[1] +str(time.time()) )
+                init_path = self.stage_file(s[1]+str(time.time()) + "_init")
+
+                #pickle.dump(self.current_state, open(path, 'wb+'))
                 pickle.dump(self.initial_state, open(init_path, 'wb+'))
-                self.emit('sendTrainingMessage', "* stage saved to: " + path, room=actor)
+                self.emit('sendTrainingMessage', "* stage saved to: " + init_path, room=actor)
             except:
                 print("error saving state:")
                 traceback.print_exc()
@@ -213,6 +222,8 @@ class HtmlUnity(Modality):
             return
 
         if message=='reset':
+            self.initial_state = None
+            self.current_state = None
             self.emit("reset", room=actor)
 
         self.emit('sendTrainingMessage', 'YOU: '+ message, room=actor)
@@ -227,7 +238,6 @@ class HtmlUnity(Modality):
         #self.emit("instructions", arg, room=actor)
 
         if self.current_state is not None:
-           
             self.emit('load', self.current_state, room=actor)
         else: 
             print("current state is none, no state to load")
@@ -245,10 +255,14 @@ class HtmlUnity(Modality):
     def emit(self, topic, argument=None, room=None):
         #log emissions to current task in database for future analysis/playback
         if topic == 'load':
+            if len(argument.keys())<3:
+                print(argument)
+                return
             argument['waypoints'] = {}
-            #print("emitting load of argument " + str(hash(argument)) + " to room " + str(room))
+            
             print("attempting to load " + str(hash(frozenset(argument))) + " to " + str(room))
-
+            #ll = argument.get('lidarLights', "none")
+            #print("lidar lights from load: " + str(ll))
 
         if self.current_task >= 0 and topic != "sleep_callback":
             try:
@@ -305,15 +319,20 @@ class HtmlUnity(Modality):
         raise NotImplementedError
 
     # can be overwritten
-    def set_initial_state(self, actor, state):
+    def set_initial_state(self, actor, state, level_path=None):
         """ handles an initial_state coming from an actor, or call with predefined level to """
-        
+        if self.current_task_record is not None and self.current_task_record.task_number == self.current_task:
+            return #already set initial state for this task
+
         #if self.initial_state is None:
         self.initial_state = state
         self.current_state = state 
-        print("level loaded, current state set: " + str(hash(frozenset(state))))
+        print("level loaded for task " + str(self.current_task) + " current state set: " + str(hash(frozenset(state))) + ", size: " + str(len(state)))
 
         new_task = Task(session_id=self.session_id, task_number=self.current_task, init_state=state)
+        new_task.level_path = level_path
+        self.current_task_record = new_task
+
         session_record = db_session.query(Session).filter(Session.session_id==self.session_id).one()
         session_record.tasks.append(new_task)
         
@@ -356,7 +375,7 @@ class HtmlUnity(Modality):
             levelobj = pickle.load(open(path, 'rb'))
             #print("levelobj: " + str(levelobj))
             #print("hash " + str(hash(frozenset(levelobj))))
-        return levelobj
+        return levelobj, path
             
         
         
@@ -368,29 +387,24 @@ class HtmlUnity(Modality):
             
         if seconds_remaining <= 0:
             self.waiting=False
-            if self.initial_state is None:
-                self.initial_state = {'set': True}
-                if self.testing:
-                    levels = self.testing_levels
-                else:
-                    levels = self.training_levels
+            
+            now = time.time()
+            dt = now - self.last_callback
+            print("dt: " + str(dt))
+            if dt < 2:
+                return
 
-                if len(levels) > 0:
-                    levelobj = self.load_level(levels)
-                    self.set_initial_state(actor, levelobj)
+            self.last_callback = now
 
-                    print("dumping init task info to: " + str(self.session_id) + "::" + str(self.current_task))
-                    task = db_session.query(Task)
-                    task.level_path = self.level
-                    db_session.commit()
-
-                else:
-                    print("no levels to sample from, resetting instead")
-                    self.emit("reset", room=actor)
-                    #print("setting floor plan for " + str(actor))
-                    #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=actor)
-                       
-                self.update_ui(actor)
+            if not self.initialized[self.current_task]:
+                self.initialized[self.current_task] = True
+                levelobj, path = self.leveltups[self.current_task]
+                self.set_initial_state(actor, levelobj, level_path=path)
+            
+            #print("no levels to sample from, resetting instead")
+            #self.emit("reset", room=actor)
+            
+            self.update_ui(actor)
         else:
             self.emit("sendTrainingMessage", "* " + str(seconds_remaining) + "..", room=actor)
             self.emit("sleep_callback", seconds_remaining-1, room=actor)
@@ -414,8 +428,8 @@ class HtmlUnity(Modality):
         self.idle = False
         self.prev_task = self.current_task
         self.current_task += 1
-        self.initial_state = None
-        self.current_state = None
+        #self.initial_state = None
+        #self.current_state = None
         actors = []
 
         print("starting new task " + str(self.current_task))
@@ -479,18 +493,10 @@ class HtmlUnity(Modality):
 class HtmlUnityTest(HtmlUnity):
     def __init__(self, sio, user, tasks=2):
         super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user, num_teaching_tasks=tasks-1, num_testing_tasks=1)
-        
-        #self.init_html_lock = {user: False}
-        #self.init_html_lock = {user: False}
+
         self.init(user)
 
     def init(self, user):
-        #self.unity_lock = {user : False}
-        #self.html_lock = {user : False}
-        # self.training_buttons[user] = button_menu.test
-        
-        # self.update_ui(user)
-
         self.event_dict['action'] = HtmlUnityTest.action.__func__
         self.event_dict['button'] = HtmlUnityTest.button.__func__
 
