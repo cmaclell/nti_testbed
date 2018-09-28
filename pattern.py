@@ -7,6 +7,7 @@ import time
 import json
 import random
 import copy
+import numpy as np
 
 import button_menu
 
@@ -56,6 +57,8 @@ class HtmlUnity(Modality):
 
         self.leveltups = [self.load_level(self.training_levels) for _ in range(num_teaching_tasks)]
         self.leveltups.extend([self.load_level(self.testing_levels) for _ in range(num_testing_tasks)])
+        for i in range(num_teaching_tasks + num_testing_tasks):
+            self.leveltups[i][0]['task_number'] = i
 
         self.action_descriptions = {
                             'go': "move along current waypoints",
@@ -90,10 +93,12 @@ class HtmlUnity(Modality):
         self.testing = False
         self.last_callback = 0
         self.current_task_record = None
-        #print("setting floor plan to " + str(self.student))
+        self.synchronize_flag = False
         
-        #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.teacher)#room=self.student)
-        #self.emit("setFloorPlan", {"width" : 6, "height" : 4, "numOfObjects" : 3, "numOfIslands":4, "seed":1000}, room=self.student)#oom=self.teacher)
+        self.last_location = {}
+        self.last_location[self.teacher] = {}
+        self.last_location[self.student] = {}
+        
         self.waiting = False
 
     def revert(self, uid, state):  
@@ -256,13 +261,12 @@ class HtmlUnity(Modality):
         #log emissions to current task in database for future analysis/playback
         if topic == 'load':
             if len(argument.keys())<3:
-                print(argument)
+                print("small load: " + str(argument))
                 return
             argument['waypoints'] = {}
             
             print("attempting to load " + str(hash(frozenset(argument))) + " to " + str(room))
-            #ll = argument.get('lidarLights', "none")
-            #print("lidar lights from load: " + str(ll))
+            
 
         if self.current_task >= 0 and topic != "sleep_callback":
             try:
@@ -305,8 +309,24 @@ class HtmlUnity(Modality):
             if self.training_buttons[uid] is not None:
                 self.emit('getTrainingButtons', self.training_buttons[uid], room=uid)
 
-    def action(self, actor, action):
-        raise NotImplementedError
+    def synchronize_state(self, actor, data, lead):
+        if 'xWp' in data:
+            xWp, yWp = float(data.get('xWp', 0)), float(data.get('yWp', 0))
+            x, y = float(data.get('xPos', None)), float(data.get('yPos', None))
+            self.last_location[actor][(xWp, yWp)] = np.array([x, y])
+            #ps = "synchronizing actor " + str(actor) + " wp " + str((xWp, yWp))
+
+            a_loc = self.last_location[actor].get((xWp, yWp), None)
+            b_loc = self.last_location[self.partner(actor)].get((xWp, yWp), None)
+            
+            if a_loc is not None and b_loc is not None:
+                distance = np.linalg.norm(a_loc-b_loc)
+                #ps +=  " dist " + str(distance)
+                if distance > 1.5 and actor==lead:
+                    self.synchronize_flag = True
+                    self.emit("getGameState", lead)
+                    print("distance: " + str(distance) + ", attempting to synchronize")
+            #print(ps)
 
     def button(self, actor, action):
         raise NotImplementedError
@@ -369,7 +389,7 @@ class HtmlUnity(Modality):
             path = self.level
             #path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "stages", self.level)
             
-            print("chose level path " + str(path) + " " + str(os.path.exists(path)))
+            #print("chose level path " + str(path) + " " + str(os.path.exists(path)))
 
         
             levelobj = pickle.load(open(path, 'rb'))
@@ -386,16 +406,11 @@ class HtmlUnity(Modality):
             return l.pop(random.randrange(len(l)))
             
         if seconds_remaining <= 0:
+            if self.current_task == self.num_teaching_tasks:
+                self.emit("sendTrainingMessage", "* Done with the training phase of the experiment. Now you will be tested on your knowledge. Complete the tasks as before, but you will receive no feedback or assistance. ", room=self.student)
+     
             self.waiting=False
-            
-            now = time.time()
-            dt = now - self.last_callback
-            print("dt: " + str(dt))
-            if dt < 2:
-                return
-
-            self.last_callback = now
-
+      
             if not self.initialized[self.current_task]:
                 self.initialized[self.current_task] = True
                 levelobj, path = self.leveltups[self.current_task]
@@ -412,13 +427,12 @@ class HtmlUnity(Modality):
 
     def final_state(self, data):
         try:
-            if self.prev_state is not None:
-                prev_task_record = db_session.query(Task).filter(Task.session_id==self.session_id).filter(Task.task_number==self.prev_task).first()
-                if prev_task_record is not None:
-                    print("dumping final task info to: " + str(self.session_id) + "::" + str(self.prev_task))
-                    prev_task_record.final_state = json.dumps(data)
-                    db_session.commit()
-                    self.prev_task = None
+            task_number = data.get('task_number', self.prev_task)
+            prev_task_record = db_session.query(Task).filter(Task.session_id==self.session_id).filter(Task.task_number==task_number).first()
+            if prev_task_record is not None:
+                #print("dumping final task info to: " + str(self.session_id) + "::" + str(task_number))
+                prev_task_record.final_state = json.dumps(data)
+                db_session.commit()
                 #print("saved game state to " + str(self.prev_task_id))
         except Exception as e:
             print("error storing final state" + str(e))
@@ -453,8 +467,7 @@ class HtmlUnity(Modality):
 
         if self.current_task >= self.num_teaching_tasks:
             if self.current_task == self.num_teaching_tasks:
-                self.emit("sendTrainingMessage", "* Done with the training phase of the experiment. Now you will be tested on your knowledge. Complete the tasks as before, but you will receive no feedback or assistance. ", room=self.student)
-     
+                
                 print("teacher finished")
                 self.emit("complete_hit", "args", room=self.teacher)
                 self.finished[self.teacher] = True
@@ -515,6 +528,8 @@ class HtmlUnityTest(HtmlUnity):
     def action(self, actor, action):
         self.training_buttons[actor] = button_menu.test
 
+       
+
         if action['info']['function'] == 'set_waypoint':
             self.emit("action", action, room='playback'+actor)
             action['info']['function'] = 'go'
@@ -522,11 +537,6 @@ class HtmlUnityTest(HtmlUnity):
 
         if not action['arguments']['alreadyPlayed']:
             self.emit("action", action, room=actor)
-
-        #self.training_buttons[actor] = button_menu.test
-
-        #if actor==self.student:
-            #self.state_stack.append(action['prior state'])
             
         self.update_ui(actor)
 
@@ -550,6 +560,7 @@ class HtmlUnityReward(HtmlUnity):
         self.update_ui()
 
     def action(self, actor, action):
+        
         self.last_action = action
 
         if actor==self.teacher:
@@ -683,6 +694,7 @@ class HtmlUnityApprentice(HtmlUnity):
         self.demonstrate=False
 
     def action(self, actor, action):
+     
         if actor==self.teacher:
             if self.demonstrate:
                 if action['info']['function'] == 'set_waypoint':
