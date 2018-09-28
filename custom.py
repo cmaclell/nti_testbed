@@ -324,9 +324,17 @@ def register_user(uid):
         if random.random() > .5:
             a, b = b, a
             
-
+        pattern_config = config.get("Task Parameters", "patterns").split(',')
+        pattern_map = { 
+                        "Demonstrate" : pattern.HtmlUnityDemonstrate, 
+                        "Reward" : pattern.HtmlUnityReward,
+                        "Apprentice": pattern.HtmlUnityApprentice,
+                        "Test": pattern.HtmlUnityTest
+                        }
+                         
         #todo: weight pattern selection sample by quanity of type in database, if needed
-        pattern_types = [pattern.HtmlUnityApprentice] #[pattern.HtmlUnityDemonstrate, pattern.HtmlUnityApprentice, pattern.HtmlUnityReward]
+        pattern_types = [pattern_map[name.strip()] for name in pattern_config]
+
         new_game = random.choice(pattern_types)(sio=sio, teacher=a, student=b)
 
         print("created new game of type " + str(new_game.__class__.__name__))
