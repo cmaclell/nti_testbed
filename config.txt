@@ -34,6 +34,10 @@ single_player = false
 # options are: Reward, Demonstrate, Apprentice, Test
 patterns = Reward, Demonstrate, Apprentice
 
+# 
+num_teaching_tasks = 2
+num_testing_tasks = 2
+
 [Shell Parameters]
 launch_in_sandbox_mode = true
 

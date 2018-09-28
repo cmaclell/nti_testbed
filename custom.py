@@ -335,7 +335,11 @@ def register_user(uid):
         #todo: weight pattern selection sample by quanity of type in database, if needed
         pattern_types = [pattern_map[name.strip()] for name in pattern_config]
 
-        new_game = random.choice(pattern_types)(sio=sio, teacher=a, student=b)
+        n_teach = int(config.get("Task Parameters", "num_teaching_tasks"))
+        n_test = int(config.get("Task Parameters", "num_testing_tasks"))
+
+
+        new_game = random.choice(pattern_types)(sio=sio, teacher=a, student=b, num_teaching_tasks=n_teach, num_testing_tasks=n_test)
 
         print("created new game of type " + str(new_game.__class__.__name__))
         

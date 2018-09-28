@@ -504,8 +504,8 @@ class HtmlUnity(Modality):
 
    
 class HtmlUnityTest(HtmlUnity):
-    def __init__(self, sio, user, tasks=2):
-        super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user, num_teaching_tasks=tasks-1, num_testing_tasks=1)
+    def __init__(self, sio, user, num_teaching_tasks=2, num_testing_tasks=2):
+        super(HtmlUnityTest, self).__init__(sio=sio, teacher=user, student=user, num_teaching_tasks=num_teaching_tasks, num_testing_tasks=num_testing_tasks)
 
         self.init(user)
 
@@ -552,8 +552,8 @@ class HtmlUnityTest(HtmlUnity):
                 self.new_task()
               
 class HtmlUnityReward(HtmlUnity):
-    def __init__(self, sio, teacher, student):
-        super(HtmlUnityReward, self).__init__(sio=sio, teacher=teacher, student=student)
+    def __init__(self, sio, teacher, student, num_teaching_tasks, num_testing_tasks):
+        super(HtmlUnityReward, self).__init__(sio=sio, teacher=teacher, student=student, num_teaching_tasks=num_teaching_tasks, num_testing_tasks=num_testing_tasks)
         #self.unity_lock[self.student] = False
         #self.html_lock[self.student] = False
         self.training_buttons[self.student] = button_menu.reward_student
@@ -645,8 +645,8 @@ class HtmlUnityReward(HtmlUnity):
         
 
 class HtmlUnityDemonstrate(HtmlUnity):
-    def __init__(self, sio, teacher, student):
-        super(HtmlUnityDemonstrate, self).__init__(sio=sio, teacher=teacher, student=student)
+    def __init__(self, sio, teacher, student, num_teaching_tasks, num_testing_tasks):
+        super(HtmlUnityDemonstrate, self).__init__(sio=sio, teacher=teacher, student=student, num_teaching_tasks=num_teaching_tasks, num_testing_tasks=num_testing_tasks)
         self.training_buttons[self.teacher] = button_menu.demonstrate_teacher
     
         self.init_unity_lock = {teacher : False, student : True}
@@ -686,8 +686,8 @@ class HtmlUnityDemonstrate(HtmlUnity):
         self.update_ui()
 
 class HtmlUnityApprentice(HtmlUnity):
-    def __init__(self, sio, teacher, student):
-        super(HtmlUnityApprentice, self).__init__(sio=sio, teacher=teacher, student=student)
+    def __init__(self, sio, teacher, student, num_teaching_tasks, num_testing_tasks):
+        super(HtmlUnityApprentice, self).__init__(sio=sio, teacher=teacher, student=student, num_teaching_tasks=num_teaching_tasks, num_testing_tasks=num_testing_tasks)
         self.training_buttons[self.student] = button_menu.apprentice_student
         
         self.update_ui()
