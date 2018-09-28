@@ -30,6 +30,10 @@ threads = 1
 [Task Parameters]
 single_player = false
 
+# configures teaching patterns that will be sampled from at runtime, 
+# options are: Reward, Demonstrate, Apprentice, Test
+patterns = Reward, Demonstrate, Apprentice
+
 [Shell Parameters]
 launch_in_sandbox_mode = true
 

@@ -8,6 +8,7 @@ from redisworks import Root
 from psiturk.psiturk_config import PsiturkConfig
 from psiturk.experiment_errors import ExperimentError
 from psiturk.user_utils import PsiTurkAuthorization, nocache
+import numpy as np
 
 # # Database setup
 from psiturk.db import db_session, init_db
@@ -80,12 +81,12 @@ def get_siojs(path):
 @sio.on('connect')
 @exception
 def connected(sid, environ):
-    pass # print("new socket connection")
+    pass 
     
 @sio.on('disconnect')
 @exception
 def disconnect(sid):
-    pass # print("socket connection closed")
+    pass
 
 
 
@@ -118,17 +119,7 @@ def join(sid, data):
                 if source == 'unity' or source == None:
                     games[room].reconnect(room)
 
-                busy = True
-                #if 'first' not in data:
-                    #games[room].read_instructions[room] = True
-
-               
-                #if 'first' in data and games[room].read_instructions[room]:
-                    #arg = {"role" : games[room].role_string(room), "pattern" : games[room].__class__.__name__}
-                    #sio.emit("refresh", arg, room=room)
-                
-                
-                
+                busy = True                
                 
     # user is new
     if not busy:
@@ -163,12 +154,11 @@ def ready(sid, data):
 @sio.on("gameStateRevert")
 @exception
 def revert(sid, data):
-    print("received revert message")
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
     if game is not None:
-        root.game.revert(sid, data)
+        game.revert(sid, data)
 
 
 # UNITY WEBSOCKET API ENDPOINTS
@@ -216,14 +206,31 @@ def initialState(sid, data):
 @sio.on('gameState')
 @exception
 def gameState(sid, data):
-    
-    #print("gameState: " + str(data))
     uid = connections.get(sid, None)
     game = games.get(uid, None)
 
     if game is not None:
+        if game.synchronize_flag:
+            #x, y = float(data.get('player', {}).get('xPos', 0)), float(data.get('arguments', {}).get('yPos', 0))
+            #game.last_location[uid][] = np.array([x, y])
+            #game.last_location[game.partner(uid)][] = np.array([x, y])
+            game.emit("load", data, room=uid)
+            game.emit("load", data, room=game.partner(uid))
+            game.synchronize_flag=False
         game.final_state(data)
 
+@sio.on('player_location')
+@exception
+def playerLocation(sid, data):
+    uid = connections.get(sid, None)
+    game = games.get(uid, None)
+
+    if game is not None:
+        if type(game) == pattern.HtmlUnityDemonstrate:
+            lead = game.teacher
+        else:
+            lead = game.student
+        game.synchronize_state(uid, data, lead=lead)
 
 
 @sio.on('endedAction')
@@ -287,8 +294,7 @@ def onTrainingButtonPress(sid, data):
     if game is not None:
         game.event(uid, event_type='button', event_data=data['identifier'])
 
-    print("training button pressed: ", data['identifier'])
-
+  
 
 def testing_user(uid):
     new_game = pattern.HtmlUnityTest(sio=sio, user=uid, tasks=100)
@@ -320,7 +326,7 @@ def register_user(uid):
             
 
         #todo: weight pattern selection sample by quanity of type in database, if needed
-        pattern_types = [pattern.HtmlUnityDemonstrate]#, pattern.HtmlUnityApprentice, pattern.HtmlUnityReward]
+        pattern_types = [pattern.HtmlUnityApprentice] #[pattern.HtmlUnityDemonstrate, pattern.HtmlUnityApprentice, pattern.HtmlUnityReward]
         new_game = random.choice(pattern_types)(sio=sio, teacher=a, student=b)
 
         print("created new game of type " + str(new_game.__class__.__name__))
