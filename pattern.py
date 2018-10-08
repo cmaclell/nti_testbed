@@ -714,10 +714,11 @@ class HtmlUnityApprentice(HtmlUnity):
 
                 self.demonstrate=False
 
+                self.training_buttons[self.teacher] = []
                 self.training_buttons[self.student] = button_menu.apprentice_student
 
                 self.unity_lock[self.teacher] = True
-                self.html_lock[self.teacher] = False
+                self.html_lock[self.teacher] = True
                 self.unity_lock[self.student] = False
                 self.html_lock[self.student] = False
                 self.update_ui()
