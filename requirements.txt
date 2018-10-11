@@ -1,3 +1,4 @@
 PsiTurk==2.2.3
 psycopg2==2.7.3.1
 numpy
+-e git+https://hq-git.soartech.com/robert.sheline/simple_redis.git@master#egg=simple_redis
