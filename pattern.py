@@ -636,6 +636,7 @@ class HtmlUnityReward(HtmlUnity):
                 self.emit('revertState', room=self.teacher)
 
                 self.emit('sendTrainingMessage', '* The teacher disallowed your action. Try again.', room=self.student)
+                self.emit("clearWaypoints", room=self.student)
 
             #self.prev_state = None
             self.training_buttons[self.teacher] = []
@@ -807,7 +808,8 @@ class HtmlUnityApprentice(HtmlUnity):
                 self.emit('revertState', room=self.student)
                 self.emit('revertState', room=self.teacher)
                 self.emit('sendTrainingMessage', '* The teacher disallowed your action. Try again.', room=self.student)
-
+                self.emit("clearWaypoints", room= self.student)
+                
             #self.prev_state = None
             self.training_buttons[self.teacher] = []
             self.training_buttons[self.student] = button_menu.apprentice_student
