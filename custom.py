@@ -3,7 +3,7 @@ from jinja2 import TemplateNotFound
 from functools import wraps
 from sqlalchemy import or_, and_
 from sqlalchemy.orm.exc import NoResultFound
-from redisworks import Root
+
 
 from psiturk.psiturk_config import PsiturkConfig
 from psiturk.experiment_errors import ExperimentError
