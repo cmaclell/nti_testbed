@@ -5,7 +5,7 @@ optional: create and activate virtualenv
 **Installation**  
 
 1. `pip install -U git+https://github.com/bsheline/psiTurk.git@socketio`
-1. `git clone https://hq-git.soartech.com/git/PsiturkApprentice.git`
+1. `git clone https://github.com/cmaclell/nti_testbed.git`
 
 **Config**  
 
