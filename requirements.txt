@@ -1,4 +1,4 @@
--e git+https://github.com/cmaclell/psiTurk.git@master#egg=PsiTurk
+-e git+https://github.com/cmaclell/psiTurk.git@socketio#egg=PsiTurk
 psycopg2==2.7.3.1
 numpy
 -e git+https://github.com/bsheline/simple_redis.git@master#egg=simple_redis

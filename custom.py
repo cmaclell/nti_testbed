@@ -297,7 +297,7 @@ def onTrainingButtonPress(sid, data):
   
 
 def testing_user(uid):
-    new_game = pattern.HtmlUnityTest(sio=sio, user=uid, tasks=100)
+    new_game = pattern.HtmlUnityTest(sio=sio, user=uid, num_teaching_tasks=5, num_testing_tasks=5)
     new_game.training_levels = []
     new_game.testing_levels = []
     #new_game.training_levels = []

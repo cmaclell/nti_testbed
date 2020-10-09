@@ -98,8 +98,8 @@ do_instructions = function(rolepattern) {
     console.log("instruction request for role: " + role + " in pattern: " + pattern);
     set_complete_hit_listener(role);
 
-    start_task();
-    return;
+    // start_task();
+    // return;
 
     psiTurk.recordUnstructuredData('pattern', pattern);
     psiTurk.recordUnstructuredData('role', role);
