@@ -341,8 +341,14 @@ class HtmlUnity(Modality):
     # can be overwritten
     def set_initial_state(self, actor, state, level_path=None):
         """ handles an initial_state coming from an actor, or call with predefined level to """
-        if self.current_task_record is not None and self.current_task_record.task_number == self.current_task:
-            return #already set initial state for this task
+        if self.current_task_record is not None:
+            try:
+                db_session.add(self.current_task_record)
+            except Exception:
+                pass
+
+            if self.current_task_record.task_number == self.current_task:
+                return #already set initial state for this task
 
         #if self.initial_state is None:
         self.initial_state = state
