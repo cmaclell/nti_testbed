@@ -68,8 +68,24 @@
 		</noscript>
 
     <div id="waiting">
-        <p>Connecting to experiment server and initializing AI system. Please wait.</p>
-        <p><i class="fa fa-spinner fa-spin" style="font-size:24px"></i></p>
+        <div class="row">
+            <!-- <div class="col-xs-2">
+               <img id="adlogo" src="{{ server_location }}/static/images/drexel.jpg" alt="SoarTech Logo" />
+            </div> -->
+            <div>
+                <h1>Hello there!</h1>
+                <p>We are currently waiting to connect you with another MTurk worker.</p>
+                <p>On average, this takes 20-25 minutes. We thank you for your patience for waiting and keeping this window open.</p>
+                <p>Note: you may be matched much earlier, so please be attentive to this screen.</p>
+                <br>
+                <br>
+                <div>Approx. Wait time: <strong><span id="time">25:00</span></strong> minutes!</div>
+                <br>
+                <br>
+                <p><i class="fa fa-spinner fa-spin" style="font-size:48px"></i></p>
+            </div>
+
+        </div>
     </div>
 
     <!-- Bootstrap core JS -->
@@ -77,3 +93,28 @@
 
 </body>
 </html>
+
+<script>
+    function startTimer(duration, display) {
+    var timer = duration, minutes, seconds;
+    setInterval(function () {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = minutes + ":" + seconds;
+
+        if (--timer < 0) {
+            timer = duration;
+        }
+    }, 1000);
+}
+
+    window.onload = function () {
+        var twentyFiveMins = 60 * 25,
+            display = document.querySelector('#time');
+        startTimer(twentyFiveMins, display);
+    };
+</script>
