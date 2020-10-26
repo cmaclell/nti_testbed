@@ -39,7 +39,7 @@ num_teaching_tasks = 2
 num_testing_tasks = 2
 
 [Shell Parameters]
-launch_in_sandbox_mode = true
+launch_in_sandbox_mode = false
 
 use_psiturk_ad_server = true
 ad_location = false
