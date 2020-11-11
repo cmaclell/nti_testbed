@@ -31,6 +31,13 @@
     <script type="text/javascript">
         // These fields provided by the psiTurk Server
 
+        var hitId = "{{hitId}}";
+        var assignmentId = "{{assignmentId}}";
+        var workerId = "{{workerId}}";
+        console.log("----------------------")
+        console.log(hitId,assignmentId,workerId)
+        console.log("----------------------")
+
         var uniqueId = "{{ uniqueId }}"; // a unique string identifying the worker/task
         var adServerLoc = "{{ adServerLoc }}"; // the location of your ad (so you can send user back at end of experiment)
         var mode = "{{ mode }}";

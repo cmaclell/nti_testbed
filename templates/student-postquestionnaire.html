@@ -19,8 +19,12 @@
         </h4>
 
         <div>
-                <!-- https://drexel.qualtrics.com/jfe/form/SV_7WX2ZC9lvkJ4q4B -->
-          <iframe allowfullscreen="" src="https://drexel.qualtrics.com/jfe/form/SV_7WX2ZC9lvkJ4q4B?hitId={{ hitid }}&assignmentId={{ assignmentid }}&workerId={{ workerid }}" style="width:100%;height:100vh;"></iframe>
+          <script>
+            const urlString = 'drexel.qualtrics.com/jfe/form/SV_7WX2ZC9lvkJ4q4B?hitId=' + hitId + '&assignmentId=' + assignmentId + '&workerId=' + workerId;
+          </script>
+
+          <iframe id="student-survey" allowfullscreen="" src=urlString style="width:100%;height:100vh;"></iframe>
+
 
         </div>
 
@@ -323,11 +327,11 @@
             </div>
             <div class="col-xs-7">
             </div>
-            <div class="col-xs-3">
+            <!-- <div class="col-xs-3">
                 <button type="button" id="next" value="next" class="btn btn-primary btn-lg continue">
                     Finish <span class="glyphicon glyphicon-arrow-right"></span>
                 </button>
-            </div>
+            </div> -->
         </div>
     </div>
 
