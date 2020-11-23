@@ -13,4 +13,4 @@ lib/
 logs/
 pysqlite2-doc/
 pip-selfcheck.json
-src/
+# src/
